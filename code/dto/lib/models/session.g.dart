@@ -9,14 +9,15 @@ part of 'session.dart';
 _Session _$SessionFromJson(Map<String, dynamic> json) => _Session(
       id: json['id'] as String,
       titre: json['titre'] as String,
-      date: const FirestoreTimestampConverter().fromJson(json['date']),
+      date:
+          const FirestoreTimestampConverter().fromJson(json['date'] as Object),
       dureeMinutes: (json['dureeMinutes'] as num).toInt(),
       participantIds: (json['participantIds'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
       statut: json['statut'] as String,
-      createdAt:
-          const FirestoreTimestampConverter().fromJson(json['createdAt']),
+      createdAt: const FirestoreTimestampConverter()
+          .fromJson(json['createdAt'] as Object),
     );
 
 const _$SessionFieldMap = <String, String>{

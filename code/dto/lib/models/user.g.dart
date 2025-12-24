@@ -11,8 +11,8 @@ _User _$UserFromJson(Map<String, dynamic> json) => _User(
       email: json['email'] as String,
       nom: json['nom'] as String,
       prenom: json['prenom'] as String,
-      createdAt:
-          const FirestoreTimestampConverter().fromJson(json['createdAt']),
+      createdAt: const FirestoreTimestampConverter()
+          .fromJson(json['createdAt'] as Object),
     );
 
 const _$UserFieldMap = <String, String>{

@@ -6,7 +6,6 @@ import 'package:brainova/screens/welcome_screen.dart';
 import 'package:brainova/screens/register_screen.dart';
 import 'package:brainova/styles/colors.dart';
 import 'package:brainova/screens/login_screen.dart';
-import 'package:brainova/screens/seeder_screen.dart';
 
 
 
@@ -62,10 +61,6 @@ class BrainovaApp extends StatelessWidget {
 
         // route pour la connexion
         '/login': (context) => const LoginScreen(),
-
-        // route pour le seeder 
-        '/seeder': (context) => const SeederScreen(), 
-
         
       },
 

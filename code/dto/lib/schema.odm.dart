@@ -595,15 +595,15 @@ extension $AppSchemaGroupesBatchDocument
 
 //Generated converter for `FirestoreTimestampConverter`
 class _$FirestoreTimestampConverterAnnotationConverter
-    implements FirestoreConverter<DateTime, Object?> {
+    implements FirestoreConverter<DateTime, Object> {
   const _$FirestoreTimestampConverterAnnotationConverter();
 
   @override
-  DateTime fromJson(Object? data) =>
+  DateTime fromJson(Object data) =>
       FirestoreTimestampConverter().fromJson(data);
 
   @override
-  Object? toJson(DateTime value) => FirestoreTimestampConverter().toJson(value);
+  Object toJson(DateTime value) => FirestoreTimestampConverter().toJson(value);
 }
 
 //Generated converter for `User`

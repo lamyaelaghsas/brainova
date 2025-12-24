@@ -15,8 +15,8 @@ _Groupe _$GroupeFromJson(Map<String, dynamic> json) => _Groupe(
       creatorId: json['creatorId'] as String,
       memberIds:
           (json['memberIds'] as List<dynamic>).map((e) => e as String).toList(),
-      createdAt:
-          const FirestoreTimestampConverter().fromJson(json['createdAt']),
+      createdAt: const FirestoreTimestampConverter()
+          .fromJson(json['createdAt'] as Object),
     );
 
 const _$GroupeFieldMap = <String, String>{
