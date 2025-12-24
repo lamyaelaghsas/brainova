@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dto/converters/firestore_timestamp_converter.dart';
 import 'package:firestore_odm/firestore_odm.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -6,13 +6,13 @@ part 'user.freezed.dart';
 part 'user.g.dart';
 
 @freezed
-class User with _$User {
+abstract class User with _$User {
   const factory User({
-    @DocumentIdField() String? id,
+    @DocumentIdField() required String id,
     required String email,
     required String nom,
     required String prenom,
-    @Default([]) List<String> groupes,
+    @FirestoreTimestampConverter() required DateTime createdAt,
   }) = _User;
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);

@@ -193,14 +193,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.7"
-  cupertino_icons:
-    dependency: "direct main"
-    description:
-      name: cupertino_icons
-      sha256: ba631d1c7f7bef6b729a622b7b752645a2d076dba9976925b8f25725a30e1ee6
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.8"
   dart_style:
     dependency: transitive
     description:
@@ -217,6 +209,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.3"
+  fast_immutable_collections:
+    dependency: transitive
+    description:
+      name: fast_immutable_collections
+      sha256: "19f70498af299cbce5ff919dbbecd5abfd9d0c28139004f68d3810ce23dedfb3"
+      url: "https://pub.dev"
+    source: hosted
+    version: "11.1.0"
   file:
     dependency: transitive
     description:
@@ -225,30 +225,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.0.1"
-  firebase_auth:
-    dependency: "direct main"
-    description:
-      name: firebase_auth
-      sha256: "0fed2133bee1369ee1118c1fef27b2ce0d84c54b7819a2b17dada5cfec3b03ff"
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.7.0"
-  firebase_auth_platform_interface:
-    dependency: transitive
-    description:
-      name: firebase_auth_platform_interface
-      sha256: "871c9df4ec9a754d1a793f7eb42fa3b94249d464cfb19152ba93e14a5966b386"
-      url: "https://pub.dev"
-    source: hosted
-    version: "7.7.3"
-  firebase_auth_web:
-    dependency: transitive
-    description:
-      name: firebase_auth_web
-      sha256: d9ada769c43261fd1b18decf113186e915c921a811bd5014f5ea08f4cf4bc57e
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.15.3"
   firebase_core:
     dependency: "direct main"
     description:
@@ -289,6 +265,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.2"
+  firestore_odm_builder:
+    dependency: "direct dev"
+    description:
+      name: firestore_odm_builder
+      sha256: "911b9413ab848dc751b08de1a154a5344bd960d206f0ce180ded3b80d7920dd9"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.1"
   fixnum:
     dependency: transitive
     description:
@@ -324,18 +308,18 @@ packages:
     dependency: "direct dev"
     description:
       name: freezed
-      sha256: "59a584c24b3acdc5250bb856d0d3e9c0b798ed14a4af1ddb7dc1c7b41df91c9c"
+      sha256: "2d399f823b8849663744d2a9ddcce01c49268fb4170d0442a655bf6a2f47be22"
       url: "https://pub.dev"
     source: hosted
-    version: "2.5.8"
+    version: "3.1.0"
   freezed_annotation:
     dependency: "direct main"
     description:
       name: freezed_annotation
-      sha256: c2e2d632dd9b8a2b7751117abcfc2b4888ecfe181bd9fca7170d9ef02e595fe2
+      sha256: "7294967ff0a6d98638e7acb774aac3af2550777accd8149c90af5b014e6d44d8"
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.4"
+    version: "3.1.0"
   frontend_server_client:
     dependency: transitive
     description:
@@ -384,14 +368,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.2"
-  intl:
-    dependency: "direct main"
-    description:
-      name: intl
-      sha256: "3df61194eb431efc39c4ceba583b95633a403f46c9fd341e550ce0bfa50e9aa5"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.20.2"
   io:
     dependency: transitive
     description:
@@ -528,6 +504,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.2"
+  preact_signals:
+    dependency: transitive
+    description:
+      name: preact_signals
+      sha256: ad45313c86b2228536a16d3dfc86da8263705d4acb4136c42907378de6910d8c
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.9.4"
   pub_semver:
     dependency: transitive
     description:
@@ -560,6 +544,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.0"
+  signals:
+    dependency: transitive
+    description:
+      name: signals
+      sha256: "0d644f4ec8ce4862c61e3d3d1168d08a7b9b6ecbe067d4f96e26dd35287f5dcd"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.3.0"
+  signals_core:
+    dependency: transitive
+    description:
+      name: signals_core
+      sha256: ea427bd53619e69e6f6cf244177e3b72870e433065c807600fb496fd80611c9f
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.2.1"
+  signals_flutter:
+    dependency: transitive
+    description:
+      name: signals_flutter
+      sha256: "7c83418f47e3538685217e583f0fbd17a29716fa1a9ce2247e2455786e8ea81a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.3.0"
   sky_engine:
     dependency: transitive
     description: flutter

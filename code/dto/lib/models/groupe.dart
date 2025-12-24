@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dto/converters/firestore_timestamp_converter.dart';
 import 'package:firestore_odm/firestore_odm.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -6,13 +6,16 @@ part 'groupe.freezed.dart';
 part 'groupe.g.dart';
 
 @freezed
-class Groupe with _$Groupe {
+abstract class Groupe with _$Groupe {
   const factory Groupe({
-    @DocumentIdField() String? id,
+    @DocumentIdField() required String id,
     required String nom,
+    required String description,
     required String code,
-    @Default([]) List<String> membres,
-    required DateTime createdAt,
+    required String couleur,
+    required String creatorId,
+    required List<String> memberIds,
+    @FirestoreTimestampConverter() required DateTime createdAt,
   }) = _Groupe;
 
   factory Groupe.fromJson(Map<String, dynamic> json) => _$GroupeFromJson(json);

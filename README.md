@@ -123,11 +123,11 @@ Fait ✅
 
 LoginScreen - Connexion OK
 RegisterScreen - Inscription OK
-HomeScreen - Liste des groupes OK
-CreateGroupScreen - Créer un groupe OK
-JoinGroupScreen - Rejoindre avec code OK
-GroupDetailScreen - Détail groupe + sessions OK
-AddSessionScreen - Ajouter session OK
+HomeScreen - Liste des groupes 
+CreateGroupScreen - Créer un groupe 
+JoinGroupScreen - Rejoindre avec code 
+GroupDetailScreen - Détail groupe + sessions 
+AddSessionScreen - Ajouter session 
 le seeder aussi !!!
 (Optionnel) OnboardingScreens - 3 écrans explicatifs
 
