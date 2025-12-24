@@ -1,0 +1,7 @@
+targets:
+  $default:
+    builders:
+      cloud_firestore_odm_generator|cloud_firestore_odm_generator:
+        enabled: true
+        options:
+          # Configure the ODM generator options here if needed

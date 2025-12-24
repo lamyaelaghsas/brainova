@@ -1,52 +1,47 @@
 // Importations nécessaires
-import 'package:flutter/material.dart'; // Framework Flutter
-import 'package:brainova/styles/colors.dart'; // Nos couleurs personnalisées
-import 'package:brainova/styles/spacings.dart'; // Nos espacements
+import 'package:flutter/material.dart';
+import 'package:brainova/styles/colors.dart';
+import 'package:brainova/styles/spacings.dart';
 
 // Classe principale du LoginScreen (StatefulWidget car l'écran change d'état)
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key}); // Constructeur
+  const LoginScreen({super.key});
 
-  static const String routeName = '/login'; // Nom de la route pour la navigation
+  static const String routeName = '/login';
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState(); // Crée l'état du widget
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-// État privé du LoginScreen (c'est ici que la logique se trouve)
+// État privé du LoginScreen
 class _LoginScreenState extends State<LoginScreen> {
   // Clé pour identifier et valider le formulaire
   final _formKey = GlobalKey<FormState>();
 
   // Contrôleurs pour récupérer le texte saisi dans chaque champ
-  final _emailController = TextEditingController(); // Contrôle le champ email
-  final _passwordController = TextEditingController(); // Contrôle le champ password
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   // Variable pour savoir si le mot de passe est masqué ou visible
-  bool _obscurePassword = true; // true = masqué (par défaut)
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
-    // Méthode appelée quand le widget est détruit
-    // Important : libérer la mémoire des contrôleurs
-    _emailController.dispose(); // Détruit le contrôleur email
-    _passwordController.dispose(); // Détruit le contrôleur password
-    super.dispose(); // Appelle la méthode dispose du parent
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
-  // Fonction appelée quand on clique sur le bouton "Connexion"
+  // Fonction appelée quand on clique sur le bouton "Se connecter"
   void _handleLogin() {
-    // Vérifie si le formulaire est valide (tous les validators retournent null)
     if (_formKey.currentState!.validate()) {
-      // Affiche dans la console les valeurs saisies (pour debug)
-      print('Email: ${_emailController.text}'); // Affiche l'email
-      print('Password: ${_passwordController.text}'); // Affiche le mot de passe
+      print('Email: ${_emailController.text}');
+      print('Password: ${_passwordController.text}');
 
-      // Affiche un message de succès en bas de l'écran (SnackBar)
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Connexion réussie ! (Firebase à venir)'), // Texte du message
-          backgroundColor: kSuccessColor, // Couleur verte de succès
+          content: Text('Connexion réussie ! (Firebase à venir)'),
+          backgroundColor: kSuccessColor,
         ),
       );
     }
@@ -54,225 +49,262 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Méthode qui construit l'interface graphique
-    return Scaffold( // Structure de base d'un écran Flutter
-      body: Container( // Container pour le fond
-        width: double.infinity, // Prend toute la largeur
-        height: double.infinity, // Prend toute la hauteur
-        decoration: const BoxDecoration( // Décoration du container
-          image: DecorationImage( // Image de fond
-            image: AssetImage('assets/images/back-accueil.png'), // Chemin de l'image
-            fit: BoxFit.cover, // L'image couvre tout l'écran
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/back-accueil.png'),
+            fit: BoxFit.cover,
           ),
         ),
-        child: SafeArea( // Zone sûre (évite les encoches, status bar, etc.)
-          child: SingleChildScrollView( // Permet de scroller si le clavier apparaît
-            child: Padding( // Ajoute du padding horizontal
-              padding: const EdgeInsets.symmetric(horizontal: 40), // 40px à gauche et droite
-              child: Form( // Widget formulaire pour la validation
-                key: _formKey, // Associe la clé du formulaire
-                child: Column( // Colonne verticale pour aligner les éléments
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Form(
+                key: _formKey,
+                child: Column(
                   children: [
-                    const SizedBox(height: 60), // Espace vide de 60px en haut
+                    const SizedBox(height: 60),
 
-                    // ======== LOGO ========
-                    Container( // Container pour le logo
-                      width: 180, // Largeur du logo
-                      height: 180, // Hauteur du logo
-                      /*decoration: BoxDecoration( // Décoration du container
-                        shape: BoxShape.circle, // Forme circulaire
-                        boxShadow: [ // Ombre autour du logo
-                          BoxShadow(
-                            color: kAccentColor.withOpacity(0.3), // Couleur dorée semi-transparente
-                            blurRadius: 15, // Flou de l'ombre
-                            spreadRadius: 2, // Étendue de l'ombre
+                    // === LOGO ===
+                    SizedBox(
+                      width: 120,
+                      height: 120,
+                      child: Image.asset(
+                        'assets/icons/cerveau.png',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // === TITRE BRAINOVA ===
+                    const Text(
+                      'BRAINOVA',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: kWhiteColor,
+                        letterSpacing: 1,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    // === SOUS-TITRE ===
+                    const Text(
+                      'Étudiez ensemble, brillez ensemble',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: kTextSecondary,
+                      ),
+                    ),
+
+                    const SizedBox(height: 40),
+
+                    // === CARTE FORMULAIRE ===
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: kSurfaceColor.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Titre "Connexion"
+                          const Text(
+                            'Connexion',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: kWhiteColor,
+                            ),
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // === CHAMP EMAIL ===
+                          const Text(
+                            'Adresse email',
+                            style: TextStyle(
+                              color: kWhiteColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            style: const TextStyle(
+                              color: kWhiteColor,
+                              fontSize: 16,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'votre@email.com',
+                              hintStyle: TextStyle(
+                                color: kTextSecondary.withOpacity(0.5),
+                                fontSize: 16,
+                              ),
+                              filled: true,
+                              fillColor: kBackgroundColor.withOpacity(0.5),
+                              prefixIcon: const Icon(
+                                Icons.email_outlined,
+                                color: kAccentPurple,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 18,
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Entrez votre email';
+                              }
+                              if (!value.contains('@')) {
+                                return 'Email invalide';
+                              }
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // === CHAMP MOT DE PASSE ===
+                          const Text(
+                            'Mot de passe',
+                            style: TextStyle(
+                              color: kWhiteColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: _obscurePassword,
+                            style: const TextStyle(
+                              color: kWhiteColor,
+                              fontSize: 16,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: '••••••••',
+                              hintStyle: TextStyle(
+                                color: kTextSecondary.withOpacity(0.5),
+                                fontSize: 16,
+                              ),
+                              filled: true,
+                              fillColor: kBackgroundColor.withOpacity(0.5),
+                              prefixIcon: const Icon(
+                                Icons.lock_outline,
+                                color: kAccentPurple,
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                  color: kTextSecondary,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscurePassword = !_obscurePassword;
+                                  });
+                                },
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 18,
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Entrez votre mot de passe';
+                              }
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // === BOUTON SE CONNECTER ===
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [kAccentColor, kAccentPurple],
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                ),
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: ElevatedButton(
+                                onPressed: _handleLogin,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  shadowColor: Colors.transparent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Se connecter',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    color: kBackgroundColor,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
                         ],
-                      ),*/
-                      child: ClipOval( // Découpe en forme de cercle
-                        child: Image.asset( // Image du logo
-                          'assets/icons/icon-accueil.png', // Chemin de l'image
-                          fit: BoxFit.cover, // Couvre tout le cercle
-                        ),
                       ),
                     ),
 
-                    const SizedBox(height: 60), // Espace de 60px après le logo
+                    const SizedBox(height: 24),
 
-                    // ======== CHAMP EMAIL ========
-                    Column( // Colonne pour le label + champ
-                      crossAxisAlignment: CrossAxisAlignment.start, // Aligne à gauche
-                      children: [
-                        const Padding( // Padding pour le label
-                          padding: EdgeInsets.only(left: 8, bottom: 8), // 8px à gauche et en bas
-                          child: Text( // Texte "EMAIL"
-                            'EMAIL',
-                            style: TextStyle(
-                              color: kWhiteColor, // Couleur blanche
-                              fontSize: 14, // Taille du texte
-                              fontWeight: FontWeight.w600, // Gras
-                              letterSpacing: 1, // Espacement entre lettres
-                            ),
-                          ),
-                        ),
-                        TextFormField( // Champ de texte
-                          controller: _emailController, // Associe le contrôleur
-                          keyboardType: TextInputType.emailAddress, // Clavier email (avec @)
-                          style: const TextStyle( // Style du texte
-                            color: Color(0xFF9CA3AF), // Couleur grise
-                            fontSize: 16, // Taille
-                          ),
-                          decoration: InputDecoration( // Décoration
-                            hintText: 'hello@reallygreatsite.com', // Placeholder
-                            hintStyle: const TextStyle( // Style du placeholder
-                              color: Color(0xFF9CA3AF), // Gris
-                              fontSize: 16, // Taille
-                            ),
-                            filled: true, // Active le fond
-                            fillColor: const Color(0xFFE5E7EB), // Fond gris clair
-                            border: OutlineInputBorder( // Bordure
-                              borderRadius: BorderRadius.circular(12), // Coins arrondis
-                              borderSide: BorderSide.none, // Pas de bordure
-                            ),
-                            contentPadding: const EdgeInsets.symmetric( // Padding interne
-                              horizontal: 20, // Horizontal
-                              vertical: 18, // Vertical
-                            ),
-                          ),
-                          validator: (value) { // Validation
-                            if (value == null || value.isEmpty) { // Si vide
-                              return 'Entrez votre email'; // Erreur
-                            }
-                            if (!value.contains('@')) { // Si pas de @
-                              return 'Email invalide'; // Erreur
-                            }
-                            return null; // Pas d'erreur
-                          },
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 24), // Espace de 24px entre les champs
-
-                    // ======== CHAMP PASSWORD ========
-                    Column( // Colonne pour label + champ
-                      crossAxisAlignment: CrossAxisAlignment.start, // Aligne à gauche
-                      children: [
-                        const Padding( // Padding du label
-                          padding: EdgeInsets.only(left: 8, bottom: 8), // Espacement
-                          child: Text( // Label "MOT DE PASSE"
-                            'MOT DE PASSE',
-                            style: TextStyle(
-                              color: kWhiteColor, // Blanc
-                              fontSize: 14, // Taille
-                              fontWeight: FontWeight.w600, // Gras
-                              letterSpacing: 1, // Espacement lettres
-                            ),
-                          ),
-                        ),
-                        TextFormField( // Champ password
-                          controller: _passwordController, // Contrôleur
-                          obscureText: _obscurePassword, // Masque le texte si true
-                          style: const TextStyle( // Style du texte
-                            color: Color(0xFF9CA3AF), // Gris
-                            fontSize: 16, // Taille
-                          ),
-                          decoration: InputDecoration( // Décoration
-                            hintText: '••••••••••••', // Placeholder en points
-                            hintStyle: const TextStyle( // Style placeholder
-                              color: Color(0xFF9CA3AF), // Gris
-                              fontSize: 16, // Taille
-                            ),
-                            filled: true, // Fond activé
-                            fillColor: const Color(0xFFE5E7EB), // Fond gris clair
-                            border: OutlineInputBorder( // Bordure
-                              borderRadius: BorderRadius.circular(12), // Arrondi
-                              borderSide: BorderSide.none, // Pas de bordure
-                            ),
-                            contentPadding: const EdgeInsets.symmetric( // Padding
-                              horizontal: 20, // Horizontal
-                              vertical: 18, // Vertical
-                            ),
-                            suffixIcon: IconButton( // Icône à droite du champ
-                              icon: Icon(
-                                _obscurePassword // Si masqué
-                                    ? Icons.visibility_off // Icône œil barré
-                                    : Icons.visibility, // Icône œil ouvert
-                                color: const Color(0xFF9CA3AF), // Couleur grise
-                              ),
-                              onPressed: () { // Quand on clique sur l'icône
-                                setState(() { // Change l'état du widget
-                                  _obscurePassword = !_obscurePassword; // Inverse la valeur
-                                });
-                              },
-                            ),
-                          ),
-                          validator: (value) { // Validation
-                            if (value == null || value.isEmpty) { // Si vide
-                              return 'Entrez votre mot de passe'; // Erreur
-                            }
-                            return null; // Pas d'erreur
-                          },
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 50), // Espace de 50px avant le bouton
-
-                    // ======== BOUTON CONNEXION ========
-                    SizedBox( // Container de taille fixe pour le bouton
-                      width: double.infinity, // Prend toute la largeur
-                      height: 60, // Hauteur de 60px
-                      child: ElevatedButton( // Bouton élevé
-                        onPressed: _handleLogin, // Appelle la fonction de connexion
-                        style: ElevatedButton.styleFrom( // Style du bouton
-                          backgroundColor: const Color(0xFFD946EF), // Rose/magenta
-                          foregroundColor: kWhiteColor, // Texte blanc
-                          shape: RoundedRectangleBorder( // Forme du bouton
-                            borderRadius: BorderRadius.circular(30), // Très arrondi
-                          ),
-                          elevation: 0, // Pas d'ombre
-                        ),
-                        child: const Text( // Texte du bouton
-                          'Connexion',
-                          style: TextStyle(
-                            fontSize: 18, // Taille
-                            fontWeight: FontWeight.w600, // Semi-gras
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 24), // Espace de 24px
-
-                    // ======== LIEN VERS INSCRIPTION ========
-                    TextButton( // Bouton texte (pas de fond)
-                      onPressed: () { // Quand on clique
-                        Navigator.pop(context); // Retour à l'écran précédent
-                        Navigator.pushNamed(context, '/register'); // Va vers inscription
+                    // === LIEN VERS INSCRIPTION ===
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, '/register');
                       },
-                      child: RichText( // Texte avec plusieurs styles
-                        text: const TextSpan( // Texte principal
-                          text: 'Je n\'ai pas encore de compte,\n', // Première ligne
+                      child: RichText(
+                        text: const TextSpan(
+                          text: 'Pas encore de compte ? ',
                           style: TextStyle(
-                            color: kWhiteColor, // Blanc
-                            fontSize: 15, // Taille
+                            color: kWhiteColor,
+                            fontSize: 15,
                           ),
-                          children: [ // Enfants (texte avec style différent)
+                          children: [
                             TextSpan(
-                              text: 'Créer mon compte !', // Deuxième ligne
+                              text: 'S\'inscrire',
                               style: TextStyle(
-                                decoration: TextDecoration.underline, // Souligné
-                                decorationColor: kWhiteColor, // Couleur soulignement
+                                color: kAccentColor,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
                         ),
-                        textAlign: TextAlign.center, // Centré
                       ),
                     ),
 
-                    const SizedBox(height: 40), // Espace de 40px en bas
+                    const SizedBox(height: 40),
                   ],
                 ),
               ),
