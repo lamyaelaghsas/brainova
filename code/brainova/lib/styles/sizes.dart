@@ -1,4 +1,4 @@
-// 📐 BRAINOVA - Tailles et dimensions
+// BRAINOVA - Tailles et dimensions
 
 // Boutons
 const double kButtonHeight = 56.0;

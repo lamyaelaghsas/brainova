@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-// 🌌 BRAINOVA - Thème spatial futuriste
+// BRAINOVA - Thème spatial futuriste
 
 // Couleurs principales
 const kPrimaryColor = Color(0xFF1A1F3A);        // Bleu nuit profond (fond principal)

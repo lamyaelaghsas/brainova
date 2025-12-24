@@ -1,4 +1,4 @@
-// 📏 BRAINOVA - Espacements
+// BRAINOVA - Espacements
 
 const double kPaddingHorizontal = 20.0;
 const double kPaddingVertical = 20.0;

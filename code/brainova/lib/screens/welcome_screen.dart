@@ -12,6 +12,7 @@ class WelcomeScreen extends StatefulWidget {
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
+// widget d'état pour le WelcomeScreen
 class _WelcomeScreenState extends State<WelcomeScreen> {
   // Contrôleur pour gérer les pages
   final PageController _pageController = PageController();

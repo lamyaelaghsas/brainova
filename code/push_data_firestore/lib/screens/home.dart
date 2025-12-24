@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:push_data_firestore/data/users.dart';
-import 'package:push_data_firestore/data/groupes.dart';
-import 'package:push_data_firestore/data/sessions.dart';
+import 'package:push_data_firestore/data/users.dart' as data;
+import 'package:push_data_firestore/data/groupes.dart' as data;
+import 'package:push_data_firestore/data/sessions.dart' as data;
 import 'package:push_data_firestore/styles/spacings.dart';
-import 'package:dto/dto.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key, required this.title});
@@ -18,13 +17,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final List<String> _logs = [];
-  late final FirestoreODM odm;
-
-  @override
-  void initState() {
-    super.initState();
-    odm = FirestoreODM(appSchema, firestore: FirebaseFirestore.instance);
-  }
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   void _addLog(String message) {
     setState(() {
@@ -45,7 +38,7 @@ class _HomeState extends State<Home> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text(
-                "🚀 Seeder Brainova",
+                "Seeder Brainova",
                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
@@ -63,21 +56,21 @@ class _HomeState extends State<Home> {
                   ),
                   child: _logs.isEmpty
                       ? const Center(
-                          child: Text(
-                            "Logs d'opérations...",
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        )
+                    child: Text(
+                      "Logs d'opérations...",
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  )
                       : ListView.builder(
-                          itemCount: _logs.length,
-                          itemBuilder: (context, index) => Padding(
-                            padding: const EdgeInsets.only(bottom: 4),
-                            child: Text(
-                              _logs[index],
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          ),
-                        ),
+                    itemCount: _logs.length,
+                    itemBuilder: (context, index) => Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        _logs[index],
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -125,98 +118,114 @@ class _HomeState extends State<Home> {
   }
 
   Future<void> deleteCollections() async {
-    _addLog("🗑️ Début de la suppression...");
+    _addLog("Début de la suppression...");
 
     try {
-      final allUsers = await odm.users.get();
-      final allGroupes = await odm.groupes.get();
-
-      for (final groupe in allGroupes) {
-        final sessions = await odm.groupes(groupe.id).sessions.get();
-        for (final session in sessions) {
-          await odm.groupes(groupe.id).sessions(session.id).delete();
-          _addLog("❌ Session supprimée: ${session.titre}");
+      // Supprimer les sessions de chaque groupe
+      final groupesSnapshot = await _firestore.collection('groupes').get();
+      for (final groupeDoc in groupesSnapshot.docs) {
+        final sessionsSnapshot = await groupeDoc.reference.collection('sessions').get();
+        for (final sessionDoc in sessionsSnapshot.docs) {
+          await sessionDoc.reference.delete();
+          _addLog("Session supprimée");
         }
-        await odm.groupes(groupe.id).delete();
-        _addLog("❌ Groupe supprimé: ${groupe.nom}");
+        await groupeDoc.reference.delete();
+        _addLog("Groupe supprimé");
       }
 
-      for (final user in allUsers) {
-        await odm.users(user.id).delete();
-        _addLog("❌ User supprimé: ${user.prenom} ${user.nom}");
+      // Supprimer les users
+      final usersSnapshot = await _firestore.collection('users').get();
+      for (final userDoc in usersSnapshot.docs) {
+        await userDoc.reference.delete();
+        _addLog("User supprimé");
       }
 
-      _addLog("✅ Toutes les données ont été supprimées");
+      _addLog("Toutes les données ont été supprimées");
     } catch (e) {
-      _addLog("❌ Erreur: $e");
+      _addLog("Erreur: $e");
     }
   }
 
   Future<void> authenticate() async {
-    _addLog("🔐 Authentification des utilisateurs...");
-    
-    for (final user in users) {
+    _addLog("Authentification des utilisateurs...");
+
+    for (final user in data.users) {
       try {
         await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: user.email,
           password: "123456789",
         );
-        _addLog("✅ User créé: ${user.email}");
+        _addLog("User créé: ${user.email}");
       } on FirebaseAuthException catch (e) {
         if (e.code == 'email-already-in-use') {
-          _addLog("ℹ️ User existe déjà: ${user.email}");
+          _addLog("User existe déjà: ${user.email}");
         } else {
-          _addLog("❌ Erreur auth: ${e.message}");
+          _addLog("Erreur auth: ${e.message}");
         }
       }
     }
   }
 
   Future<void> addUsers() async {
-    _addLog("👤 Ajout des utilisateurs...");
+    _addLog("Ajout des utilisateurs...");
 
-    for (final user in users) {
+    for (final user in data.users) {
       try {
-        await odm.users.insert(user);
-        _addLog("✅ User ajouté: ${user.prenom} ${user.nom}");
+        // Laisser Firestore générer l'ID automatiquement
+        await _firestore.collection('users').add(user.toJson());
+        _addLog("User ajouté: ${user.prenom} ${user.nom}");
       } catch (e) {
-        _addLog("❌ Erreur user: $e");
+        _addLog("Erreur user: $e");
       }
     }
   }
 
   Future<void> addGroupes() async {
-    _addLog("👥 Ajout des groupes...");
+    _addLog("Ajout des groupes...");
 
-    for (final groupe in groupes) {
+    for (final groupe in data.groupes) {
       try {
-        await odm.groupes.insert(groupe);
-        _addLog("✅ Groupe ajouté: ${groupe.nom}");
+        await _firestore.collection('groupes').add(groupe.toJson());
+        _addLog("Groupe ajouté: ${groupe.nom}");
       } catch (e) {
-        _addLog("❌ Erreur groupe: $e");
+        _addLog("Erreur groupe: $e");
       }
     }
   }
 
   Future<void> addSessions() async {
-    _addLog("📅 Ajout des sessions...");
+    _addLog("Ajout des sessions...");
 
-    final sessionsByGroupe = getSessionsByGroupe();
+    // On doit d'abord récupérer les IDs des groupes créés
+    final groupesSnapshot = await _firestore.collection('groupes').get();
 
-    for (final entry in sessionsByGroupe.entries) {
-      final groupeId = entry.key;
-      final groupeSessions = entry.value;
+    if (groupesSnapshot.docs.length < 3) {
+      _addLog("Erreur: pas assez de groupes créés");
+      return;
+    }
 
-      for (final session in groupeSessions) {
+    // Associer 2 sessions à chaque groupe
+    for (int i = 0; i < groupesSnapshot.docs.length; i++) {
+      final groupeDoc = groupesSnapshot.docs[i];
+      final groupeId = groupeDoc.id;
+
+      // Prendre 2 sessions pour ce groupe
+      final sessionsForGroupe = data.sessions.skip(i * 2).take(2);
+
+      for (final session in sessionsForGroupe) {
         try {
-          await odm.groupes(groupeId).sessions.insert(session);
-          _addLog("✅ Session ajoutée: ${session.titre}");
+          await _firestore
+              .collection('groupes')
+              .doc(groupeId)
+              .collection('sessions')
+              .add(session.toJson());
+          _addLog("Session ajoutée: ${session.titre}");
         } catch (e) {
-          _addLog("❌ Erreur session: $e");
+          _addLog("Erreur session: $e");
         }
       }
     }
 
-    _addLog("🎉 Toutes les données ont été créées !");
+    _addLog("Toutes les données ont été créées !");
   }
 }
