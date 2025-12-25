@@ -1,4 +1,5 @@
 // === IMPORTATIONS ===
+import 'package:brainova/screens/groupelist_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -6,6 +7,12 @@ import 'package:brainova/screens/welcome_screen.dart';
 import 'package:brainova/screens/register_screen.dart';
 import 'package:brainova/styles/colors.dart';
 import 'package:brainova/screens/login_screen.dart';
+import 'package:brainova/screens/groupe_detail_screen.dart';
+import 'package:brainova/screens/nouvelle_session_screen.dart';
+import 'package:brainova/screens/creer_groupe_screen.dart';
+import 'package:brainova/screens/rejoindre_groupe_screen.dart';
+import 'package:brainova/screens/session_detail_screen.dart';
+import 'package:brainova/screens/session_active_screen.dart';
 
 
 
@@ -61,6 +68,48 @@ class BrainovaApp extends StatelessWidget {
 
         // route pour la connexion
         '/login': (context) => const LoginScreen(),
+
+        '/groupes': (context) => const GroupeListScreen(), 
+
+        '/groupe-detail': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          return GroupeDetailScreen(
+            groupeId: args['groupeId'],
+            nom: args['nom'],
+            code: args['code'],
+            couleur: args['couleur'],
+            description: args['description'],
+          );
+        },
+        '/nouvelle-session': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          return NouvelleSessionScreen(
+            groupeId: args['groupeId'],
+            groupeNom: args['groupeNom'],
+          );
+        },
+
+        CreerGroupeScreen.routeName: (context) => const CreerGroupeScreen(),
+        RejoindreGroupeScreen.routeName: (context) => const RejoindreGroupeScreen(),
+        '/session-detail': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          return SessionDetailScreen(
+            groupeId: args['groupeId'],
+            sessionId: args['sessionId'],
+            groupeNom: args['groupeNom'],
+          );
+        },
+
+        '/session-active': (context) {
+        final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+        return SessionActiveScreen(
+          groupeId: args['groupeId'],
+          sessionId: args['sessionId'],
+          groupeNom: args['groupeNom'],
+          sujet: args['sujet'],
+          dureePrevueMinutes: args['dureePrevueMinutes'],
+        );
+      },
         
       },
 

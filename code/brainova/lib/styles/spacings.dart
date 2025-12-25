@@ -18,3 +18,7 @@ const double kLargeSpace = 24.0;
 
 const double kCardPadding = 16.0;
 const double kScreenPadding = 20.0;
+
+// Espacements spécifiques
+const double kSpacingXXLarge = 60.0;          // Espace très large onboarding
+const double kSpacingLargeExtra = 29.0;       // Espacement entre indicateurs et boutons

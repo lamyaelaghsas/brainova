@@ -1,9 +1,11 @@
-// Importations nécessaires
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:brainova/styles/colors.dart';
+import 'package:brainova/styles/sizes.dart';
 import 'package:brainova/styles/spacings.dart';
+import 'package:brainova/styles/texts.dart';
 
-// Classe principale du RegisterScreen (StatefulWidget car l'écran change d'état)
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -13,21 +15,16 @@ class RegisterScreen extends StatefulWidget {
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-// État privé du RegisterScreen
 class _RegisterScreenState extends State<RegisterScreen> {
-  // Clé pour identifier et valider le formulaire
   final _formKey = GlobalKey<FormState>();
-
-  // Contrôleurs pour récupérer le texte saisi dans chaque champ
   final _prenomController = TextEditingController();
   final _nomController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-
-  // Variables pour savoir si les mots de passe sont masqués
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -39,20 +36,55 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  // Fonction appelée quand on clique sur le bouton "Créer mon compte"
-  void _handleRegister() {
-    if (_formKey.currentState!.validate()) {
-      print('Prénom: ${_prenomController.text}');
-      print('Nom: ${_nomController.text}');
-      print('Email: ${_emailController.text}');
-      print('Mot de passe: ${_passwordController.text}');
+  Future<void> _handleRegister() async {
+    if (!_formKey.currentState!.validate()) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Inscription réussie ! (Firebase à venir)'),
-          backgroundColor: kSuccessColor,
-        ),
+    setState(() => _isLoading = true);
+
+    try {
+      // Créer le compte Firebase Auth
+      final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
       );
+
+      // Créer le document utilisateur dans Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .set({
+        'email': _emailController.text.trim(),
+        'nom': _nomController.text.trim(),
+        'prenom': _prenomController.text.trim(),
+        'createdAt': DateTime.now(),
+      });
+
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/groupes');
+      }
+    } on FirebaseAuthException catch (e) {
+      String message = 'Une erreur est survenue';
+      
+      if (e.code == 'weak-password') {
+        message = 'Le mot de passe est trop faible';
+      } else if (e.code == 'email-already-in-use') {
+        message = 'Cet email est déjà utilisé';
+      } else if (e.code == 'invalid-email') {
+        message = 'Email invalide';
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: kErrorColor,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -71,58 +103,53 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: SafeArea(
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
+              padding: const EdgeInsets.symmetric(horizontal: kPaddingHorizontalL),
               child: Form(
                 key: _formKey,
                 child: Column(
                   children: [
-                    const SizedBox(height: 20),
-
-                    
+                    const SizedBox(height: kPaddingVertical),
 
                     // === LOGO CERVEAU ===
-                    SizedBox(
-                      width: 120,
-                      height: 120,
-                      child: Image.asset(
-                        'assets/icons/cerveau.png',
+                    const SizedBox(
+                      width: kLogoSize,
+                      height: kLogoSize,
+                      child: Image(
+                        image: AssetImage('assets/icons/cerveau.png'),
                         fit: BoxFit.contain,
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: kPaddingVertical),
 
                     // === TITRE BRAINOVA ===
-                    const Text(
+                    Text(
                       'BRAINOVA',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: kWhiteColor,
-                        letterSpacing: 1,
+                      style: kTitleLarge.copyWith(
+                        fontSize: kFontSizeXXLarge,
                       ),
                     ),
 
-                    const SizedBox(height: 8),
+                    const SizedBox(height: kIndicatorSize),
 
                     // === SOUS-TITRE ===
-                    const Text(
+                    Text(
                       'Créez votre compte et commencez à briller',
-                      style: TextStyle(
-                        fontSize: 14,
+                      style: kBodyMedium.copyWith(
+                        fontSize: kFontSizeSmall,
                         color: kTextSecondary,
                       ),
                       textAlign: TextAlign.center,
                     ),
 
-                    const SizedBox(height: 30),
+                    const SizedBox(height: kLargeSpace + kPaddingHorizontalXS),
 
                     // === CARTE FORMULAIRE ===
                     Container(
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(kLargeSpace),
                       decoration: BoxDecoration(
                         color: kSurfaceColor.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(kCardRadius),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,14 +157,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           // Titre "Inscription"
                           const Text(
                             'Inscription',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: kWhiteColor,
-                            ),
+                            style: kTitleMedium,
                           ),
 
-                          const SizedBox(height: 24),
+                          const SizedBox(height: kLargeSpace),
 
                           // === LIGNE PRÉNOM + NOM ===
                           Row(
@@ -147,46 +170,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
+                                    Text(
                                       'Prénom',
-                                      style: TextStyle(
-                                        color: kWhiteColor,
-                                        fontSize: 14,
+                                      style: kBodyMedium.copyWith(
+                                        fontSize: kFontSizeSmall,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: kIndicatorSize),
                                     TextFormField(
                                       controller: _prenomController,
-                                      style: const TextStyle(
-                                        color: kWhiteColor,
-                                        fontSize: 16,
-                                      ),
+                                      style: kBodyMedium,
                                       decoration: InputDecoration(
                                         hintText: 'Jean',
-                                        hintStyle: TextStyle(
+                                        hintStyle: kBodyMedium.copyWith(
                                           color: kTextSecondary.withOpacity(0.5),
-                                          fontSize: 16,
                                         ),
                                         filled: true,
                                         fillColor: kBackgroundColor.withOpacity(0.5),
                                         prefixIcon: const Icon(
                                           Icons.person_outline,
                                           color: kAccentPink,
-                                          size: 20,
+                                          size: kPaddingVertical,
                                         ),
                                         border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(kInputRadius),
                                           borderSide: BorderSide.none,
                                         ),
                                         contentPadding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 16,
+                                          horizontal: kMediumSpace,
+                                          vertical: kMediumSpace,
                                         ),
                                       ),
                                       validator: (value) {
                                         if (value == null || value.isEmpty) {
-                                          return 'Requis';
+                                          return 'Entrez votre prénom';
                                         }
                                         return null;
                                       },
@@ -194,54 +212,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   ],
                                 ),
                               ),
-
-                              const SizedBox(width: 12),
-
+                              const SizedBox(width: kSmallSpace),
                               // Champ Nom
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
+                                    Text(
                                       'Nom',
-                                      style: TextStyle(
-                                        color: kWhiteColor,
-                                        fontSize: 14,
+                                      style: kBodyMedium.copyWith(
+                                        fontSize: kFontSizeSmall,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: kIndicatorSize),
                                     TextFormField(
                                       controller: _nomController,
-                                      style: const TextStyle(
-                                        color: kWhiteColor,
-                                        fontSize: 16,
-                                      ),
+                                      style: kBodyMedium,
                                       decoration: InputDecoration(
                                         hintText: 'Dupont',
-                                        hintStyle: TextStyle(
+                                        hintStyle: kBodyMedium.copyWith(
                                           color: kTextSecondary.withOpacity(0.5),
-                                          fontSize: 16,
                                         ),
                                         filled: true,
                                         fillColor: kBackgroundColor.withOpacity(0.5),
                                         prefixIcon: const Icon(
-                                          Icons.person_outline,
+                                          Icons.person,
                                           color: kAccentPink,
-                                          size: 20,
+                                          size: kPaddingVertical,
                                         ),
                                         border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(kInputRadius),
                                           borderSide: BorderSide.none,
                                         ),
                                         contentPadding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 16,
+                                          horizontal: kMediumSpace,
+                                          vertical: kMediumSpace,
                                         ),
                                       ),
                                       validator: (value) {
                                         if (value == null || value.isEmpty) {
-                                          return 'Requis';
+                                          return 'Entrez votre nom';
                                         }
                                         return null;
                                       },
@@ -252,44 +263,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ],
                           ),
 
-                          const SizedBox(height: 20),
+                          const SizedBox(height: kPaddingVertical),
 
                           // === CHAMP EMAIL ===
-                          const Text(
-                            'Adresse email',
-                            style: TextStyle(
-                              color: kWhiteColor,
-                              fontSize: 14,
+                          Text(
+                            'Email',
+                            style: kBodyMedium.copyWith(
+                              fontSize: kFontSizeSmall,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: kIndicatorSize),
                           TextFormField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
-                            style: const TextStyle(
-                              color: kWhiteColor,
-                              fontSize: 16,
-                            ),
+                            style: kBodyMedium,
                             decoration: InputDecoration(
-                              hintText: 'votre@email.com',
-                              hintStyle: TextStyle(
+                              hintText: 'jean.dupont@email.com',
+                              hintStyle: kBodyMedium.copyWith(
                                 color: kTextSecondary.withOpacity(0.5),
-                                fontSize: 16,
                               ),
                               filled: true,
                               fillColor: kBackgroundColor.withOpacity(0.5),
                               prefixIcon: const Icon(
                                 Icons.email_outlined,
-                                color: kAccentPurple,
+                                color: kAccentColor,
                               ),
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(kInputRadius),
                                 borderSide: BorderSide.none,
                               ),
                               contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 18,
+                                horizontal: kPaddingHorizontal,
+                                vertical: kPaddingVerticalS + kIndicatorSize,
                               ),
                             ),
                             validator: (value) {
@@ -303,30 +309,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             },
                           ),
 
-                          const SizedBox(height: 20),
+                          const SizedBox(height: kPaddingVertical),
 
                           // === CHAMP MOT DE PASSE ===
-                          const Text(
+                          Text(
                             'Mot de passe',
-                            style: TextStyle(
-                              color: kWhiteColor,
-                              fontSize: 14,
+                            style: kBodyMedium.copyWith(
+                              fontSize: kFontSizeSmall,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: kIndicatorSize),
                           TextFormField(
                             controller: _passwordController,
                             obscureText: _obscurePassword,
-                            style: const TextStyle(
-                              color: kWhiteColor,
-                              fontSize: 16,
-                            ),
+                            style: kBodyMedium,
                             decoration: InputDecoration(
                               hintText: '••••••••',
-                              hintStyle: TextStyle(
+                              hintStyle: kBodyMedium.copyWith(
                                 color: kTextSecondary.withOpacity(0.5),
-                                fontSize: 16,
                               ),
                               filled: true,
                               fillColor: kBackgroundColor.withOpacity(0.5),
@@ -348,12 +349,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 },
                               ),
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(kInputRadius),
                                 borderSide: BorderSide.none,
                               ),
                               contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 18,
+                                horizontal: kPaddingHorizontal,
+                                vertical: kPaddingVerticalS + kIndicatorSize,
                               ),
                             ),
                             validator: (value) {
@@ -367,30 +368,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             },
                           ),
 
-                          const SizedBox(height: 20),
+                          const SizedBox(height: kPaddingVertical),
 
                           // === CHAMP CONFIRMER MOT DE PASSE ===
-                          const Text(
+                          Text(
                             'Confirmer le mot de passe',
-                            style: TextStyle(
-                              color: kWhiteColor,
-                              fontSize: 14,
+                            style: kBodyMedium.copyWith(
+                              fontSize: kFontSizeSmall,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: kIndicatorSize),
                           TextFormField(
                             controller: _confirmPasswordController,
                             obscureText: _obscureConfirmPassword,
-                            style: const TextStyle(
-                              color: kWhiteColor,
-                              fontSize: 16,
-                            ),
+                            style: kBodyMedium,
                             decoration: InputDecoration(
                               hintText: '••••••••',
-                              hintStyle: TextStyle(
+                              hintStyle: kBodyMedium.copyWith(
                                 color: kTextSecondary.withOpacity(0.5),
-                                fontSize: 16,
                               ),
                               filled: true,
                               fillColor: kBackgroundColor.withOpacity(0.5),
@@ -412,12 +408,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 },
                               ),
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(kInputRadius),
                                 borderSide: BorderSide.none,
                               ),
                               contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 18,
+                                horizontal: kPaddingHorizontal,
+                                vertical: kPaddingVerticalS + kIndicatorSize,
                               ),
                             ),
                             validator: (value) {
@@ -431,12 +427,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             },
                           ),
 
-                          const SizedBox(height: 24),
+                          const SizedBox(height: kLargeSpace),
 
                           // === BOUTON CRÉER MON COMPTE ===
                           SizedBox(
                             width: double.infinity,
-                            height: 56,
+                            height: kButtonHeight,
                             child: Container(
                               decoration: BoxDecoration(
                                 gradient: const LinearGradient(
@@ -444,25 +440,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   begin: Alignment.centerLeft,
                                   end: Alignment.centerRight,
                                 ),
-                                borderRadius: BorderRadius.circular(30),
+                                borderRadius: BorderRadius.circular(kBorderRadiusLarge),
                               ),
                               child: ElevatedButton(
-                                onPressed: _handleRegister,
+                                onPressed: _isLoading ? null : _handleRegister,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.transparent,
                                   shadowColor: Colors.transparent,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
+                                    borderRadius: BorderRadius.circular(kBorderRadiusLarge),
                                   ),
                                 ),
-                                child: const Text(
-                                  'Créer mon compte',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
-                                    color: kWhiteColor,
-                                  ),
-                                ),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        height: kIconSizeMedium,
+                                        width: kIconSizeMedium,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: kWhiteColor,
+                                        ),
+                                      )
+                                    : Text(
+                                        'Créer mon compte',
+                                        style: kButtonText.copyWith(
+                                          fontSize: kFontSizeLarge,
+                                          color: kWhiteColor,
+                                        ),
+                                      ),
                               ),
                             ),
                           ),
@@ -470,7 +474,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: kLargeSpace),
 
                     // === LIEN VERS CONNEXION ===
                     TextButton(
@@ -479,13 +483,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Navigator.pushNamed(context, '/login');
                       },
                       child: RichText(
-                        text: const TextSpan(
+                        text: TextSpan(
                           text: 'Déjà un compte ? ',
-                          style: TextStyle(
-                            color: kWhiteColor,
-                            fontSize: 15,
+                          style: kBodyMedium.copyWith(
+                            fontSize: kFontSizeMedium,
                           ),
-                          children: [
+                          children: const [
                             TextSpan(
                               text: 'Se connecter',
                               style: TextStyle(
@@ -498,7 +501,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 40),
+                    const SizedBox(height: kPaddingVerticalL),
                   ],
                 ),
               ),

@@ -1,0 +1,553 @@
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:brainova/styles/colors.dart';
+import 'package:brainova/styles/sizes.dart';
+import 'package:brainova/styles/spacings.dart';
+import 'package:brainova/styles/texts.dart';
+
+class GroupeListScreen extends StatefulWidget {
+  const GroupeListScreen({super.key});
+
+  static const String routeName = '/groupes';
+
+  @override
+  State<GroupeListScreen> createState() => _GroupeListScreenState();
+}
+
+class _GroupeListScreenState extends State<GroupeListScreen> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  String _userName = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final userId = _auth.currentUser?.uid;
+    if (userId != null) {
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      if (userDoc.exists) {
+        final data = userDoc.data()!;
+        setState(() {
+          final prenom = data['prenom'] ?? '';
+          final nom = data['nom'] ?? '';
+          _userName = '$prenom $nom';
+        });
+      }
+    }
+  }
+
+  Color _getGroupColor(String couleur) {
+    final hexColor = couleur.replaceAll('#', '');
+    return Color(int.parse('FF$hexColor', radix: 16));
+  }
+
+  String _formatDuration(int minutes) {
+    final hours = minutes ~/ 60;
+    return '${hours}h';
+  }
+
+  String _formatLastSession(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays == 0) {
+      return 'Hier, ${date.hour}h${date.minute.toString().padLeft(2, '0')}';
+    } else if (difference.inDays < 7) {
+      return 'Il y a ${difference.inDays} jours, ${date.hour}h${date.minute.toString().padLeft(2, '0')}';
+    } else {
+      return '${date.day}/${date.month}/${date.year}';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: kBackgroundColor,
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/back-accueil.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(),
+              Expanded(
+                child: _buildGroupsList(),
+              ),
+              _buildBottomButtons(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.all(kScreenPadding),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Nom de l'utilisateur
+                Text(_userName, style: kTitleMedium),
+                const SizedBox(height: kPaddingVerticalXS),
+                // Nombre de groupes
+                StreamBuilder<QuerySnapshot>(
+                  stream: _firestore
+                      .collection('groupes')
+                      .where('memberIds', arrayContains: _auth.currentUser?.uid)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    final count = snapshot.hasData ? snapshot.data!.docs.length : 0;
+                    return Text(
+                      '$count groupes',
+                      style: kBodyMedium.copyWith(color: kTextSecondary),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          // Bouton de déconnexion
+          IconButton(
+            onPressed: () async {
+              // Confirmation avant déconnexion
+              final shouldLogout = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  backgroundColor: kSurfaceColor,
+                  title: const Text('Se déconnecter ?', style: kTitleMedium),
+                  content: Text(
+                    'Voulez-vous vraiment vous déconnecter ?',
+                    style: kBodyMedium.copyWith(color: kTextSecondary),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Annuler', style: TextStyle(color: kTextSecondary)),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('Déconnexion', style: TextStyle(color: kErrorColor)),
+                    ),
+                  ],
+                ),
+              );
+
+              if (shouldLogout == true) {
+                await _auth.signOut();
+                if (mounted) {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    '/',
+                    (route) => false,
+                  );
+                }
+              }
+            },
+            icon: const Icon(
+              Icons.logout,
+              color: kErrorColor,
+              size: kIconSizeMedium,
+            ),
+            tooltip: 'Se déconnecter',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGroupsList() {
+    final userId = _auth.currentUser?.uid;
+    
+    if (userId == null) {
+      return const Center(
+        child: Text('Utilisateur non connecté', style: kBodyMedium),
+      );
+    }
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: _firestore
+          .collection('groupes')
+          .where('memberIds', arrayContains: userId)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: kAccentColor),
+          );
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return _buildEmptyState();
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: kScreenPadding,
+                vertical: kMediumSpace,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Mes Groupes d'Étude",
+                    style: kTitleLarge,
+                  ),
+                  const SizedBox(height: kSmallSpace),
+                  Text(
+                    "Étudiez ensemble, brillez ensemble ✨",
+                    style: kBodyMedium.copyWith(
+                      color: kTextSecondary,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: kScreenPadding),
+                itemCount: snapshot.data!.docs.length,
+                itemBuilder: (context, index) {
+                  final groupeDoc = snapshot.data!.docs[index];
+                  final groupeData = groupeDoc.data() as Map<String, dynamic>;
+                  
+                  return _buildGroupCard(
+                    groupeId: groupeDoc.id,
+                    nom: groupeData['nom'] ?? '',
+                    code: groupeData['code'] ?? '',
+                    couleur: groupeData['couleur'] ?? '#FFD700',
+                    memberIds: List<String>.from(groupeData['memberIds'] ?? []),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildGroupCard({
+    required String groupeId,
+    required String nom,
+    required String code,
+    required String couleur,
+    required List<String> memberIds,
+  }) {
+    final groupColor = _getGroupColor(couleur);
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: _firestore
+          .collection('groupes')
+          .doc(groupeId)
+          .collection('sessions')
+          .snapshots(),
+      builder: (context, sessionsSnapshot) {
+        int totalMinutes = 0;
+        DateTime? lastSessionDate;
+
+        if (sessionsSnapshot.hasData) {
+          for (final sessionDoc in sessionsSnapshot.data!.docs) {
+            final sessionData = sessionDoc.data() as Map<String, dynamic>;
+            totalMinutes += (sessionData['dureeMinutes'] ?? 0) as int;
+            
+            final sessionDate = (sessionData['date'] as Timestamp).toDate();
+            if (lastSessionDate == null || sessionDate.isAfter(lastSessionDate)) {
+              lastSessionDate = sessionDate;
+            }
+          }
+        }
+
+        return GestureDetector(
+          onTap: () {
+            Navigator.pushNamed(
+              context,
+              '/groupe-detail',
+              arguments: {
+                'groupeId': groupeId,
+                'nom': nom,
+                'code': code,
+                'couleur': couleur,
+                'description': null,
+              },
+            );
+          },
+          child: Container(
+            margin: const EdgeInsets.only(bottom: kMediumSpace),
+            padding: const EdgeInsets.all(kLargeSpace),
+            decoration: BoxDecoration(
+              color: kSurfaceColor.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(kCardRadius),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header avec nom et badge durée
+                Row(
+                  children: [
+                    // Pastille de couleur
+                    Container(
+                      width: kGroupColorBadge,
+                      height: kGroupColorBadge,
+                      decoration: BoxDecoration(
+                        color: groupColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: kSmallSpace),
+                    Expanded(
+                      child: Text(
+                        nom,
+                        style: kTitleMedium,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: kMediumSpace,
+                        vertical: kPaddingVerticalXS,
+                      ),
+                      decoration: BoxDecoration(
+                        color: groupColor.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(kInputRadius),
+                      ),
+                      child: Text(
+                        _formatDuration(totalMinutes),
+                        style: kAccentText.copyWith(
+                          color: groupColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: kSmallSpace),
+                // Code
+                Text(
+                  'Code: $code',
+                  style: kAccentText,
+                ),
+                const SizedBox(height: kMediumSpace),
+                // Stats: Membres et Total
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(kCardPadding),
+                        decoration: BoxDecoration(
+                          color: kPrimaryColor,
+                          borderRadius: BorderRadius.circular(kInputRadius),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.people,
+                                  size: kIconSizeSmall,
+                                  color: kTextSecondary,
+                                ),
+                                const SizedBox(width: kPaddingHorizontalXS),
+                                Text(
+                                  'Membres',
+                                  style: kBodyMedium.copyWith(
+                                    fontSize: kFontSizeXSmall,
+                                    color: kTextSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: kPaddingVerticalXS),
+                            Text(
+                              '${memberIds.length}',
+                              style: kTitleLarge.copyWith(fontSize: kFontSizeXXLarge),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: kMediumSpace),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(kCardPadding),
+                        decoration: BoxDecoration(
+                          color: kPrimaryColor,
+                          borderRadius: BorderRadius.circular(kInputRadius),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.trending_up,
+                                  size: kIconSizeSmall,
+                                  color: kTextSecondary,
+                                ),
+                                const SizedBox(width: kPaddingHorizontalXS),
+                                Text(
+                                  'Total',
+                                  style: kBodyMedium.copyWith(
+                                    fontSize: kFontSizeXSmall,
+                                    color: kTextSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: kPaddingVerticalXS),
+                            Text(
+                              _formatDuration(totalMinutes),
+                              style: kTitleLarge.copyWith(fontSize: kFontSizeXXLarge),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                // Dernière session
+                if (lastSessionDate != null) ...[
+                  const SizedBox(height: kMediumSpace),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.schedule,
+                        size: kIconSizeSmall,
+                        color: kAccentColor,
+                      ),
+                      const SizedBox(width: kPaddingHorizontalXS),
+                      Text(
+                        'Dernière session: ${_formatLastSession(lastSessionDate)}',
+                        style: kBodyMedium.copyWith(
+                          fontSize: kFontSizeXSmall,
+                          color: kAccentColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(kPaddingHorizontalL),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.groups,
+              size: kIconSizeXL * 2,
+              color: kTextSecondary,
+            ),
+            const SizedBox(height: kLargeSpace),
+            const Text(
+              'Aucun groupe',
+              style: kTitleMedium,
+            ),
+            const SizedBox(height: kSmallSpace),
+            Text(
+              'Créez votre premier groupe d\'étude !',
+              style: kBodyMedium.copyWith(color: kTextSecondary),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomButtons() {
+    return Container(
+      padding: const EdgeInsets.all(kScreenPadding),
+      child: Row(
+        children: [
+          // Bouton "Créer un groupe"
+          Expanded(
+            child: SizedBox(
+              height: kButtonHeight,
+              child: ElevatedButton(
+                onPressed: () {
+                  //NAVIGATION VERS CRÉER GROUPE
+                  Navigator.pushNamed(context, '/creer-groupe');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: kAccentColor,
+                  foregroundColor: kBackgroundColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(kInputRadius),
+                  ),
+                  elevation: 0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.add, size: kIconSizeMedium),
+                    const SizedBox(width: kPaddingHorizontalXS),
+                    Text(
+                      'Créer un groupe',
+                      style: kButtonText.copyWith(
+                        color: kBackgroundColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: kMediumSpace),
+          // Bouton "Rejoindre un groupe"
+          Expanded(
+            child: SizedBox(
+              height: kButtonHeight,
+              child: OutlinedButton(
+                onPressed: () {
+                  //NAVIGATION VERS REJOINDRE GROUPE
+                  Navigator.pushNamed(context, '/rejoindre-groupe');
+                },
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: kTextPrimary,
+                  side: const BorderSide(color: kAccentColor, width: kBorderWidth),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(kInputRadius),
+                  ),
+                ),
+                child: Text(
+                  'Rejoindre un groupe',
+                  style: kButtonText.copyWith(
+                    color: kTextPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -132,14 +132,6 @@ le seeder aussi !!!
 (Optionnel) OnboardingScreens - 3 écrans explicatifs
 
 
-🚨 Décisions importantes prises
-Ce qu'on a ENLEVÉ (par rapport au concept initial)
-
-❌ Photos dans les sessions (trop complexe)
-❌ QR codes (juste code numérique)
-❌ iOS (on développe sur Windows)
-❌ Notifications push temps réel (peut-être en bonus)
-❌ Graphiques avancés (juste stats basiques)
 
 Ce qu'on GARDE (essentiel)
 
@@ -168,14 +160,6 @@ yamldependencies:
   cloud_firestore: ^5.5.2
   provider: ^6.1.2
 
-📝 État actuel du projet
-Complété
-
-✅ Projet créé et configuré
-✅ Structure des dossiers
-✅ Fichiers de styles (colors, texts, spacings, sizes)
-✅ welcome_screen, login_screen, register_screen 
-✅ Assets copiés (logo + fond)
 
 
 

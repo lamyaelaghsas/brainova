@@ -38,3 +38,11 @@ const double kDividerThickness = 1.0;
 const double kAvatarSizeSmall = 32.0;
 const double kAvatarSizeMedium = 48.0;
 const double kAvatarSizeLarge = 80.0;
+
+// Tailles spécifiques
+const double kOnboardingIconSize = 200.0;     // Icônes d'onboarding avec glow
+const double kBorderRadiusLarge = 30.0;       // Pour les boutons arrondis
+const double kGroupColorBadge = 12.0;         // Badge pastille de couleur groupe
+const double kGlowBlurRadius = 116.0;         // Blur radius pour effet glow
+const double kButtonElevationHigh = 8.0;      // Elevation haute pour boutons
+const double kIndicatorWidth = 32.0;          // Largeur indicateur actif (kLargeSpace + kIndicatorSize)

@@ -98,8 +98,7 @@ class _HomeState extends State<Home> {
             FloatingActionButton.extended(
               heroTag: "generate",
               onPressed: () async {
-                await authenticate();
-                await addUsers();
+                await addUsers();  // Auth + Firestore en même temps
                 await addGroupes();
                 await addSessions();
               },
@@ -146,38 +145,44 @@ class _HomeState extends State<Home> {
     }
   }
 
-  Future<void> authenticate() async {
-    _addLog("Authentification des utilisateurs...");
-
-    for (final user in data.users) {
-      try {
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: user.email,
-          password: "123456789",
-        );
-        _addLog("User créé: ${user.email}");
-      } on FirebaseAuthException catch (e) {
-        if (e.code == 'email-already-in-use') {
-          _addLog("User existe déjà: ${user.email}");
-        } else {
-          _addLog("Erreur auth: ${e.message}");
-        }
-      }
-    }
-  }
-
   Future<void> addUsers() async {
     _addLog("Ajout des utilisateurs...");
 
     for (final user in data.users) {
       try {
-        // Laisser Firestore générer l'ID automatiquement
-        await _firestore.collection('users').add(user.toJson());
-        _addLog("User ajouté: ${user.prenom} ${user.nom}");
+        // 1. Créer ou récupérer l'utilisateur dans Firebase Auth
+        UserCredential userCredential;
+        try {
+          userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+            email: user.email,
+            password: "123456789",
+          );
+          _addLog("User créé dans Auth: ${user.email}");
+        } on FirebaseAuthException catch (e) {
+          if (e.code == 'email-already-in-use') {
+            // Si l'user existe déjà, se connecter pour récupérer l'UID
+            userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+              email: user.email,
+              password: "123456789",
+            );
+            _addLog("User existe déjà dans Auth: ${user.email}");
+          } else {
+            throw e;
+          }
+        }
+
+        // 2. Utiliser l'UID Firebase comme ID du document Firestore
+        final uid = userCredential.user!.uid;
+        await _firestore.collection('users').doc(uid).set(user.toJson());
+        _addLog("User ajouté dans Firestore: ${user.prenom} ${user.nom} (UID: ${uid.substring(0, 8)}...)");
+        
       } catch (e) {
         _addLog("Erreur user: $e");
       }
     }
+    
+    // Se déconnecter après avoir créé tous les users
+    await FirebaseAuth.instance.signOut();
   }
 
   Future<void> addGroupes() async {
@@ -226,6 +231,6 @@ class _HomeState extends State<Home> {
       }
     }
 
-    _addLog("Toutes les données ont été créées !");
+    _addLog("🎉 Toutes les données ont été créées !");
   }
 }

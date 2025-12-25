@@ -1,9 +1,10 @@
-// Importations nécessaires
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:brainova/styles/colors.dart';
+import 'package:brainova/styles/sizes.dart';
 import 'package:brainova/styles/spacings.dart';
+import 'package:brainova/styles/texts.dart';
 
-// Classe principale du LoginScreen (StatefulWidget car l'écran change d'état)
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -13,17 +14,12 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-// État privé du LoginScreen
 class _LoginScreenState extends State<LoginScreen> {
-  // Clé pour identifier et valider le formulaire
   final _formKey = GlobalKey<FormState>();
-
-  // Contrôleurs pour récupérer le texte saisi dans chaque champ
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-
-  // Variable pour savoir si le mot de passe est masqué ou visible
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -32,18 +28,43 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  // Fonction appelée quand on clique sur le bouton "Se connecter"
-  void _handleLogin() {
-    if (_formKey.currentState!.validate()) {
-      print('Email: ${_emailController.text}');
-      print('Password: ${_passwordController.text}');
+  Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Connexion réussie ! (Firebase à venir)'),
-          backgroundColor: kSuccessColor,
-        ),
+    setState(() => _isLoading = true);
+
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
       );
+
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/groupes');
+      }
+    } on FirebaseAuthException catch (e) {
+      String message = 'Une erreur est survenue';
+      
+      if (e.code == 'user-not-found') {
+        message = 'Aucun utilisateur trouvé avec cet email';
+      } else if (e.code == 'wrong-password') {
+        message = 'Mot de passe incorrect';
+      } else if (e.code == 'invalid-email') {
+        message = 'Email invalide';
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: kErrorColor,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -62,55 +83,50 @@ class _LoginScreenState extends State<LoginScreen> {
         child: SafeArea(
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
+              padding: const EdgeInsets.symmetric(horizontal: kPaddingHorizontalL),
               child: Form(
                 key: _formKey,
                 child: Column(
                   children: [
-                    const SizedBox(height: 60),
+                    const SizedBox(height: kLargeSpace * 2.5),
 
                     // === LOGO ===
-                    SizedBox(
-                      width: 120,
-                      height: 120,
-                      child: Image.asset(
-                        'assets/icons/cerveau.png',
+                    const SizedBox(
+                      width: kLogoSize,
+                      height: kLogoSize,
+                      child: Image(
+                        image: AssetImage('assets/icons/cerveau.png'),
                         fit: BoxFit.contain,
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: kPaddingVertical),
 
                     // === TITRE BRAINOVA ===
                     const Text(
                       'BRAINOVA',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: kWhiteColor,
-                        letterSpacing: 1,
-                      ),
+                      style: kTitleLarge,
                     ),
 
-                    const SizedBox(height: 8),
+                    const SizedBox(height: kIndicatorSize),
 
                     // === SOUS-TITRE ===
-                    const Text(
+                    Text(
                       'Étudiez ensemble, brillez ensemble',
-                      style: TextStyle(
-                        fontSize: 14,
+                      style: kBodyMedium.copyWith(
+                        fontSize: kFontSizeSmall,
                         color: kTextSecondary,
                       ),
                     ),
 
-                    const SizedBox(height: 40),
+                    const SizedBox(height: kPaddingVerticalL),
 
                     // === CARTE FORMULAIRE ===
                     Container(
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(kLargeSpace),
                       decoration: BoxDecoration(
                         color: kSurfaceColor.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(kCardRadius),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,37 +134,28 @@ class _LoginScreenState extends State<LoginScreen> {
                           // Titre "Connexion"
                           const Text(
                             'Connexion',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: kWhiteColor,
-                            ),
+                            style: kTitleMedium,
                           ),
 
-                          const SizedBox(height: 24),
+                          const SizedBox(height: kLargeSpace),
 
                           // === CHAMP EMAIL ===
-                          const Text(
+                          Text(
                             'Adresse email',
-                            style: TextStyle(
-                              color: kWhiteColor,
-                              fontSize: 14,
+                            style: kBodyMedium.copyWith(
+                              fontSize: kFontSizeSmall,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: kIndicatorSize),
                           TextFormField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
-                            style: const TextStyle(
-                              color: kWhiteColor,
-                              fontSize: 16,
-                            ),
+                            style: kBodyMedium,
                             decoration: InputDecoration(
                               hintText: 'votre@email.com',
-                              hintStyle: TextStyle(
+                              hintStyle: kBodyMedium.copyWith(
                                 color: kTextSecondary.withOpacity(0.5),
-                                fontSize: 16,
                               ),
                               filled: true,
                               fillColor: kBackgroundColor.withOpacity(0.5),
@@ -157,12 +164,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                 color: kAccentPurple,
                               ),
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(kInputRadius),
                                 borderSide: BorderSide.none,
                               ),
                               contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 18,
+                                horizontal: kPaddingHorizontal,
+                                vertical: kPaddingVerticalS + kIndicatorSize,
                               ),
                             ),
                             validator: (value) {
@@ -176,30 +183,25 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                           ),
 
-                          const SizedBox(height: 20),
+                          const SizedBox(height: kPaddingVertical),
 
                           // === CHAMP MOT DE PASSE ===
-                          const Text(
+                          Text(
                             'Mot de passe',
-                            style: TextStyle(
-                              color: kWhiteColor,
-                              fontSize: 14,
+                            style: kBodyMedium.copyWith(
+                              fontSize: kFontSizeSmall,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: kIndicatorSize),
                           TextFormField(
                             controller: _passwordController,
                             obscureText: _obscurePassword,
-                            style: const TextStyle(
-                              color: kWhiteColor,
-                              fontSize: 16,
-                            ),
+                            style: kBodyMedium,
                             decoration: InputDecoration(
                               hintText: '••••••••',
-                              hintStyle: TextStyle(
+                              hintStyle: kBodyMedium.copyWith(
                                 color: kTextSecondary.withOpacity(0.5),
-                                fontSize: 16,
                               ),
                               filled: true,
                               fillColor: kBackgroundColor.withOpacity(0.5),
@@ -221,12 +223,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                 },
                               ),
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(kInputRadius),
                                 borderSide: BorderSide.none,
                               ),
                               contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 18,
+                                horizontal: kPaddingHorizontal,
+                                vertical: kPaddingVerticalS + kIndicatorSize,
                               ),
                             ),
                             validator: (value) {
@@ -237,12 +239,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                           ),
 
-                          const SizedBox(height: 24),
+                          const SizedBox(height: kLargeSpace),
 
                           // === BOUTON SE CONNECTER ===
                           SizedBox(
                             width: double.infinity,
-                            height: 56,
+                            height: kButtonHeight,
                             child: Container(
                               decoration: BoxDecoration(
                                 gradient: const LinearGradient(
@@ -250,25 +252,33 @@ class _LoginScreenState extends State<LoginScreen> {
                                   begin: Alignment.centerLeft,
                                   end: Alignment.centerRight,
                                 ),
-                                borderRadius: BorderRadius.circular(30),
+                                borderRadius: BorderRadius.circular(kBorderRadiusLarge),
                               ),
                               child: ElevatedButton(
-                                onPressed: _handleLogin,
+                                onPressed: _isLoading ? null : _handleLogin,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.transparent,
                                   shadowColor: Colors.transparent,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
+                                    borderRadius: BorderRadius.circular(kBorderRadiusLarge),
                                   ),
                                 ),
-                                child: const Text(
-                                  'Se connecter',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
-                                    color: kBackgroundColor,
-                                  ),
-                                ),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        height: kIconSizeMedium,
+                                        width: kIconSizeMedium,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: kBackgroundColor,
+                                        ),
+                                      )
+                                    : Text(
+                                        'Se connecter',
+                                        style: kButtonText.copyWith(
+                                          fontSize: kFontSizeLarge,
+                                          color: kBackgroundColor,
+                                        ),
+                                      ),
                               ),
                             ),
                           ),
@@ -276,7 +286,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: kLargeSpace),
 
                     // === LIEN VERS INSCRIPTION ===
                     TextButton(
@@ -285,13 +295,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         Navigator.pushNamed(context, '/register');
                       },
                       child: RichText(
-                        text: const TextSpan(
+                        text: TextSpan(
                           text: 'Pas encore de compte ? ',
-                          style: TextStyle(
-                            color: kWhiteColor,
-                            fontSize: 15,
+                          style: kBodyMedium.copyWith(
+                            fontSize: kFontSizeMedium,
                           ),
-                          children: [
+                          children: const [
                             TextSpan(
                               text: 'S\'inscrire',
                               style: TextStyle(
@@ -304,7 +313,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 40),
+                    const SizedBox(height: kPaddingVerticalL),
                   ],
                 ),
               ),
