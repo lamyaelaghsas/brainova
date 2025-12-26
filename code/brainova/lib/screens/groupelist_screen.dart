@@ -5,6 +5,7 @@ import 'package:brainova/styles/colors.dart';
 import 'package:brainova/styles/sizes.dart';
 import 'package:brainova/styles/spacings.dart';
 import 'package:brainova/styles/texts.dart';
+import 'package:brainova/widgets/custom_bottom_nav_bar.dart';
 
 class GroupeListScreen extends StatefulWidget {
   const GroupeListScreen({super.key});
@@ -56,7 +57,9 @@ class _GroupeListScreenState extends State<GroupeListScreen> {
     final now = DateTime.now();
     final difference = now.difference(date);
 
-    if (difference.inDays == 0) {
+     if (difference.inDays == 0) {
+      return 'Aujourd\'hui, ${date.hour}h${date.minute.toString().padLeft(2, '0')}';
+    } else if (difference.inDays == 1) {
       return 'Hier, ${date.hour}h${date.minute.toString().padLeft(2, '0')}';
     } else if (difference.inDays < 7) {
       return 'Il y a ${difference.inDays} jours, ${date.hour}h${date.minute.toString().padLeft(2, '0')}';
@@ -83,11 +86,78 @@ class _GroupeListScreenState extends State<GroupeListScreen> {
               Expanded(
                 child: _buildGroupsList(),
               ),
-              _buildBottomButtons(),
+              // Boutons créer/rejoindre groupe
+              Padding(
+                padding: const EdgeInsets.all(kScreenPadding),
+                child: Row(
+                  children: [
+                    // Bouton "Créer un groupe"
+                    Expanded(
+                      child: SizedBox(
+                        height: kButtonHeight,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/creer-groupe');
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: kAccentColor,
+                            foregroundColor: kBackgroundColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(kInputRadius),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.add, size: kIconSizeMedium),
+                              const SizedBox(width: kPaddingHorizontalXS),
+                              Text(
+                                'Créer un groupe',
+                                style: kButtonText.copyWith(
+                                  color: kBackgroundColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: kMediumSpace),
+                    // Bouton "Rejoindre un groupe"
+                    Expanded(
+                      child: SizedBox(
+                        height: kButtonHeight,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/rejoindre-groupe');
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: kTextPrimary,
+                            side: const BorderSide(color: kAccentColor, width: kBorderWidth),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(kInputRadius),
+                            ),
+                          ),
+                          child: Text(
+                            'Rejoindre un groupe',
+                            style: kButtonText.copyWith(
+                              color: kTextPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
       ),
+      bottomNavigationBar: const CustomBottomNavBar(currentIndex: 1),
     );
   }
 
@@ -299,7 +369,7 @@ class _GroupeListScreenState extends State<GroupeListScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header avec nom et badge durée
+                // Header avec nom
                 Row(
                   children: [
                     // Pastille de couleur
@@ -316,23 +386,6 @@ class _GroupeListScreenState extends State<GroupeListScreen> {
                       child: Text(
                         nom,
                         style: kTitleMedium,
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: kMediumSpace,
-                        vertical: kPaddingVerticalXS,
-                      ),
-                      decoration: BoxDecoration(
-                        color: groupColor.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(kInputRadius),
-                      ),
-                      child: Text(
-                        _formatDuration(totalMinutes),
-                        style: kAccentText.copyWith(
-                          color: groupColor,
-                          fontWeight: FontWeight.w600,
-                        ),
                       ),
                     ),
                   ],
@@ -476,77 +529,6 @@ class _GroupeListScreenState extends State<GroupeListScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildBottomButtons() {
-    return Container(
-      padding: const EdgeInsets.all(kScreenPadding),
-      child: Row(
-        children: [
-          // Bouton "Créer un groupe"
-          Expanded(
-            child: SizedBox(
-              height: kButtonHeight,
-              child: ElevatedButton(
-                onPressed: () {
-                  //NAVIGATION VERS CRÉER GROUPE
-                  Navigator.pushNamed(context, '/creer-groupe');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: kAccentColor,
-                  foregroundColor: kBackgroundColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(kInputRadius),
-                  ),
-                  elevation: 0,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.add, size: kIconSizeMedium),
-                    const SizedBox(width: kPaddingHorizontalXS),
-                    Text(
-                      'Créer un groupe',
-                      style: kButtonText.copyWith(
-                        color: kBackgroundColor,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: kMediumSpace),
-          // Bouton "Rejoindre un groupe"
-          Expanded(
-            child: SizedBox(
-              height: kButtonHeight,
-              child: OutlinedButton(
-                onPressed: () {
-                  //NAVIGATION VERS REJOINDRE GROUPE
-                  Navigator.pushNamed(context, '/rejoindre-groupe');
-                },
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: kTextPrimary,
-                  side: const BorderSide(color: kAccentColor, width: kBorderWidth),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(kInputRadius),
-                  ),
-                ),
-                child: Text(
-                  'Rejoindre un groupe',
-                  style: kButtonText.copyWith(
-                    color: kTextPrimary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

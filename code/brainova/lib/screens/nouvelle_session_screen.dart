@@ -5,6 +5,7 @@ import 'package:brainova/styles/colors.dart';
 import 'package:brainova/styles/sizes.dart';
 import 'package:brainova/styles/spacings.dart';
 import 'package:brainova/styles/texts.dart';
+import 'package:brainova/services/notification_service.dart'; // ⭐ NOUVEAU
 
 class NouvelleSessionScreen extends StatefulWidget {
   final String groupeId;
@@ -48,11 +49,6 @@ class _NouvelleSessionScreenState extends State<NouvelleSessionScreen> {
         throw Exception('Utilisateur non connecté');
       }
 
-      // Récupérer les memberIds du groupe
-      final groupeDoc = await _firestore.collection('groupes').doc(widget.groupeId).get();
-      final groupeData = groupeDoc.data();
-      final memberIds = List<String>.from(groupeData?['memberIds'] ?? []);
-
       // Créer la session EN COURS (isTermine = false)
       final sessionDoc = await _firestore
           .collection('groupes')
@@ -60,13 +56,22 @@ class _NouvelleSessionScreenState extends State<NouvelleSessionScreen> {
           .collection('sessions')
           .add({
         'sujet': _sujetController.text.trim(),
-        'dureeSecondes': 0, // Sera mis à jour à la fin
-        'dureeMinutes': 0, // Gardé pour compatibilité
+        'dureeSecondes': 0,
+        'dureeMinutes': 0,
+        'dureePrevueMinutes': int.parse(_dureeController.text),
         'date': DateTime.now(),
-        'participantIds': memberIds,
-        'isTermine': false, // En cours
+        'participantIds': [userId],
+        'isTermine': false,
         'createdBy': userId,
       });
+
+      // ⭐ ENVOYER LA NOTIFICATION À TOUS LES MEMBRES
+      await NotificationService.notifyNewSession(
+        groupeId: widget.groupeId,
+        sessionId: sessionDoc.id,
+        sujet: _sujetController.text.trim(),
+        creatorId: userId,
+      );
 
       if (mounted) {
         // Navigation vers l'écran de session active avec chronomètre

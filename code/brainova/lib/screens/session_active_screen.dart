@@ -6,6 +6,7 @@ import 'package:brainova/styles/colors.dart';
 import 'package:brainova/styles/sizes.dart';
 import 'package:brainova/styles/spacings.dart';
 import 'package:brainova/styles/texts.dart';
+import 'package:brainova/services/notification_service.dart'; // ⭐ NOUVEAU
 
 class SessionActiveScreen extends StatefulWidget {
   final String groupeId;
@@ -44,6 +45,22 @@ class _SessionActiveScreenState extends State<SessionActiveScreen> with WidgetsB
     WidgetsBinding.instance.addObserver(this);
     _startTime = DateTime.now();
     _startTimer();
+    
+    // ⭐ NOTIFIER QUE LA SESSION EST EN COURS (chrono démarre)
+    _notifySessionStart();
+  }
+
+  // ⭐ NOUVELLE FONCTION POUR NOTIFIER
+  Future<void> _notifySessionStart() async {
+    final userId = _auth.currentUser?.uid;
+    if (userId != null) {
+      await NotificationService.notifySessionEnCours(
+        groupeId: widget.groupeId,
+        sessionId: widget.sessionId,
+        sujet: widget.sujet,
+        userId: userId,
+      );
+    }
   }
 
   @override
@@ -56,7 +73,6 @@ class _SessionActiveScreenState extends State<SessionActiveScreen> with WidgetsB
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
-      // App en arrière-plan ou minimisée
       if (!_isPaused) {
         _pauseTimer();
       }
@@ -92,7 +108,6 @@ class _SessionActiveScreenState extends State<SessionActiveScreen> with WidgetsB
         throw Exception('Utilisateur non connecté');
       }
 
-      // Mettre à jour la session dans Firestore
       await _firestore
           .collection('groupes')
           .doc(widget.groupeId)
@@ -100,7 +115,7 @@ class _SessionActiveScreenState extends State<SessionActiveScreen> with WidgetsB
           .doc(widget.sessionId)
           .update({
         'dureeSecondes': _secondsElapsed,
-        'dureeMinutes': _secondsElapsed ~/ 60, // Gardé pour compatibilité
+        'dureeMinutes': _secondsElapsed ~/ 60,
         'isTermine': true,
         'endTime': DateTime.now(),
       });
@@ -113,7 +128,6 @@ class _SessionActiveScreenState extends State<SessionActiveScreen> with WidgetsB
           ),
         );
         
-        // Retour à l'écran du groupe
         Navigator.of(context).popUntil((route) => route.settings.name == '/groupe-detail');
       }
     } catch (e) {
@@ -145,7 +159,6 @@ class _SessionActiveScreenState extends State<SessionActiveScreen> with WidgetsB
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        // Confirmer avant de quitter
         final shouldPop = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(

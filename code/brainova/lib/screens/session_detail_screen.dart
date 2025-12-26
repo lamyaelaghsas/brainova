@@ -82,6 +82,24 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
         throw Exception('Utilisateur non connecté');
       }
 
+      // VÉRIFICATION 1 : La session est-elle terminée ?
+      final isTermine = sessionData['isTermine'] ?? false;
+
+      if (isTermine) {
+        //  Session terminée → NE PAS ajouter l'utilisateur
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Cette session est déjà terminée. Consultez les résultats dans l\'historique.'),
+              backgroundColor: kErrorColor,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+        return; 
+      }
+
+      // Session EN COURS → Ajouter l'utilisateur
       final participantIds = List<String>.from(sessionData['participantIds'] ?? []);
 
       // Ajouter l'utilisateur s'il n'est pas déjà participant
@@ -97,31 +115,19 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
         });
       }
 
-      // Si la session n'est pas terminée, naviguer vers l'écran actif
-      final isTermine = sessionData['isTermine'] ?? false;
-      if (!isTermine) {
-        if (mounted) {
-          Navigator.pushReplacementNamed(
-            context,
-            '/session-active',
-            arguments: {
-              'groupeId': widget.groupeId,
-              'sessionId': widget.sessionId,
-              'groupeNom': widget.groupeNom,
-              'sujet': sessionData['sujet'] ?? 'Session',
-              'dureePrevueMinutes': sessionData['dureeMinutes'] ?? 60,
-            },
-          );
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Cette session est déjà terminée'),
-              backgroundColor: kErrorColor,
-            ),
-          );
-        }
+      // Navigation vers l'écran actif
+      if (mounted) {
+        Navigator.pushReplacementNamed(
+          context,
+          '/session-active',
+          arguments: {
+            'groupeId': widget.groupeId,
+            'sessionId': widget.sessionId,
+            'groupeNom': widget.groupeNom,
+            'sujet': sessionData['sujet'] ?? 'Session',
+            'dureePrevueMinutes': sessionData['dureePrevueMinutes'] ?? 60,
+          },
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -286,6 +292,36 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                                             ],
                                           ),
                                         ),
+                                      if (!enCours)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: kMediumSpace,
+                                            vertical: kPaddingVerticalXS,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: kPrimaryColor.withOpacity(0.2),
+                                            borderRadius: BorderRadius.circular(kPaddingHorizontalXS),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(
+                                                Icons.check_circle,
+                                                size: kIconSizeSmall,
+                                                color: kPrimaryColor,
+                                              ),
+                                              const SizedBox(width: kPaddingHorizontalXS),
+                                              Text(
+                                                'Terminée',
+                                                style: kBodyMedium.copyWith(
+                                                  fontSize: kFontSizeSmall,
+                                                  color: kPrimaryColor,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                     ],
                                   ),
 
@@ -394,21 +430,22 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                       width: double.infinity,
                       height: kButtonHeight,
                       child: ElevatedButton.icon(
-                        onPressed: () => _rejoindreSession(sessionData),
-                        icon: const Icon(
-                          Icons.group_add,
-                          color: kBackgroundColor,
+                        onPressed: isTermine ? null : () => _rejoindreSession(sessionData),
+                        icon: Icon(
+                          isTermine ? Icons.check_circle : Icons.group_add,
+                          color: isTermine ? kTextSecondary : kBackgroundColor,
                           size: kIconSizeMedium,
                         ),
                         label: Text(
-                          'Rejoindre la session',
+                          isTermine ? 'Session terminée' : 'Rejoindre la session',
                           style: kButtonText.copyWith(
                             fontSize: kFontSizeLarge,
-                            color: kBackgroundColor,
+                            color: isTermine ? kTextSecondary : kBackgroundColor,
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: kAccentColor,
+                          backgroundColor: isTermine ? kSurfaceColor : kAccentColor,
+                          disabledBackgroundColor: kSurfaceColor,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(kInputRadius),
                           ),

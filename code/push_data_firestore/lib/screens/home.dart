@@ -18,6 +18,9 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   final List<String> _logs = [];
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  
+  // Clé = email du user, Valeur = UID Firebase
+  final Map<String, String> _userIdMapping = {};
 
   void _addLog(String message) {
     setState(() {
@@ -98,9 +101,10 @@ class _HomeState extends State<Home> {
             FloatingActionButton.extended(
               heroTag: "generate",
               onPressed: () async {
-                await addUsers();  // Auth + Firestore en même temps
-                await addGroupes();
-                await addSessions();
+                // ORDRE IMPORTANT : d'abord users, puis groupes, puis sessions
+                await addUsers();  
+                await addGroupes();  // Utilise _userIdMapping
+                await addSessions(); // Utilise _userIdMapping
               },
               label: const Row(
                 children: [
@@ -132,14 +136,17 @@ class _HomeState extends State<Home> {
         _addLog("Groupe supprimé");
       }
 
-      // Supprimer les users
+      // Supprimer les users dans Firestore
       final usersSnapshot = await _firestore.collection('users').get();
       for (final userDoc in usersSnapshot.docs) {
         await userDoc.reference.delete();
-        _addLog("User supprimé");
+        _addLog("User supprimé dans Firestore");
       }
 
-      _addLog("Toutes les données ont été supprimées");
+
+      _addLog(" N'oublie pas de supprimer les users dans Firebase Auth (console)");
+
+      _addLog("Toutes les données Firestore ont été supprimées");
     } catch (e) {
       _addLog("Erreur: $e");
     }
@@ -147,6 +154,7 @@ class _HomeState extends State<Home> {
 
   Future<void> addUsers() async {
     _addLog("Ajout des utilisateurs...");
+    _userIdMapping.clear(); // Vider la map au début
 
     for (final user in data.users) {
       try {
@@ -160,7 +168,6 @@ class _HomeState extends State<Home> {
           _addLog("User créé dans Auth: ${user.email}");
         } on FirebaseAuthException catch (e) {
           if (e.code == 'email-already-in-use') {
-            // Si l'user existe déjà, se connecter pour récupérer l'UID
             userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
               email: user.email,
               password: "123456789",
@@ -171,10 +178,20 @@ class _HomeState extends State<Home> {
           }
         }
 
-        // 2. Utiliser l'UID Firebase comme ID du document Firestore
+        // 2. Récupérer l'UID Firebase
         final uid = userCredential.user!.uid;
-        await _firestore.collection('users').doc(uid).set(user.toJson());
-        _addLog("User ajouté dans Firestore: ${user.prenom} ${user.nom} (UID: ${uid.substring(0, 8)}...)");
+        
+        _userIdMapping[user.email] = uid;
+
+        // 3. Créer le document Firestore avec l'UID comme ID
+        await _firestore.collection('users').doc(uid).set({
+          'email': user.email,
+          'nom': user.nom,
+          'prenom': user.prenom,
+          'createdAt': user.createdAt,
+        });
+        
+        _addLog("User dans Firestore: ${user.prenom} ${user.nom}");
         
       } catch (e) {
         _addLog("Erreur user: $e");
@@ -183,15 +200,37 @@ class _HomeState extends State<Home> {
     
     // Se déconnecter après avoir créé tous les users
     await FirebaseAuth.instance.signOut();
+    _addLog("${_userIdMapping.length} users créés");
   }
 
   Future<void> addGroupes() async {
     _addLog("Ajout des groupes...");
 
-    for (final groupe in data.groupes) {
+    for (int i = 0; i < data.groupes.length; i++) {
+      final groupe = data.groupes[i];
+      
       try {
-        await _firestore.collection('groupes').add(groupe.toJson());
-        _addLog("Groupe ajouté: ${groupe.nom}");
+        final creatorEmail = data.users[i].email; // Chaque groupe créé par un user différent
+        final creatorUid = _userIdMapping[creatorEmail];
+        
+        if (creatorUid == null) {
+          _addLog("Erreur: UID introuvable pour $creatorEmail");
+          continue;
+        }
+
+        // Créer le groupe avec le bon UID
+        await _firestore.collection('groupes').add({
+          'nom': groupe.nom,
+          'description': groupe.description,
+          'code': groupe.code,
+          'couleur': groupe.couleur,
+          'creatorId': creatorUid,
+          'memberIds': [creatorUid],  
+          'createdAt': groupe.createdAt,
+        });
+        
+        _addLog("Groupe créé: ${groupe.nom} (créateur: ${data.users[i].prenom})");
+        
       } catch (e) {
         _addLog("Erreur groupe: $e");
       }
@@ -201,7 +240,7 @@ class _HomeState extends State<Home> {
   Future<void> addSessions() async {
     _addLog("Ajout des sessions...");
 
-    // On doit d'abord récupérer les IDs des groupes créés
+    // Récupérer les groupes créés
     final groupesSnapshot = await _firestore.collection('groupes').get();
 
     if (groupesSnapshot.docs.length < 3) {
@@ -219,12 +258,28 @@ class _HomeState extends State<Home> {
 
       for (final session in sessionsForGroupe) {
         try {
+          // 🔥 CORRECTION : Seulement le créateur du groupe comme participant
+          final groupeData = groupeDoc.data() as Map<String, dynamic>;
+          final creatorUid = groupeData['creatorId'] as String;
+
           await _firestore
               .collection('groupes')
               .doc(groupeId)
               .collection('sessions')
-              .add(session.toJson());
+              .add({
+            'titre': session.titre,
+            'date': session.date,
+            'dureeMinutes': session.dureeMinutes,
+            'dureePrevueMinutes': session.dureeMinutes, 
+            'dureeSecondes': 0,
+            'participantIds': [creatorUid], //  Seulement le créateur
+            'statut': session.statut,
+            'createdAt': session.createdAt,
+            'isTermine': false,
+          });
+          
           _addLog("Session ajoutée: ${session.titre}");
+          
         } catch (e) {
           _addLog("Erreur session: $e");
         }

@@ -5,6 +5,7 @@ import 'package:brainova/styles/colors.dart';
 import 'package:brainova/styles/sizes.dart';
 import 'package:brainova/styles/spacings.dart';
 import 'package:brainova/styles/texts.dart';
+import 'package:brainova/services/notification_service.dart'; // ⭐ NOUVEAU
 
 class RejoindreGroupeScreen extends StatefulWidget {
   const RejoindreGroupeScreen({super.key});
@@ -27,7 +28,7 @@ class _RejoindreGroupeScreenState extends State<RejoindreGroupeScreen> {
   void initState() {
     super.initState();
     _codeController.addListener(() {
-      setState(() {}); // Pour mettre à jour le compteur
+      setState(() {});
     });
   }
 
@@ -74,6 +75,12 @@ class _RejoindreGroupeScreenState extends State<RejoindreGroupeScreen> {
       await _firestore.collection('groupes').doc(groupeDoc.id).update({
         'memberIds': memberIds,
       });
+
+      // ⭐ ENVOYER LA NOTIFICATION À TOUS LES MEMBRES
+      await NotificationService.notifyMembreRejoint(
+        groupeId: groupeDoc.id,
+        newMemberId: userId,
+      );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
