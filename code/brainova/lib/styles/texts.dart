@@ -42,4 +42,3 @@ const TextStyle kAccentText = TextStyle(
   fontWeight: FontWeight.bold,
   color: kAccentColor,
 );
-

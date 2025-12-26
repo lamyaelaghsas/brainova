@@ -33,7 +33,6 @@ const double kIndicatorSize = 8.0;
 // Borders
 const double kBorderWidth = 2.0;
 const double kBorderWidthThick = 3.0;
-const double kBorderWidthThin = 1.0;          // Pour bordures fines
 
 // Dividers
 const double kDividerThickness = 1.0;
@@ -53,22 +52,10 @@ const double kIndicatorWidth = 32.0;          // Largeur indicateur actif
 
 // Limites
 const int kNotificationLimit = 50;            // Nombre max de notifications à charger
-const int kCodeLength = 6;                    // Longueur du code de groupe
-
-// Stroke widths (pour CircularProgressIndicator, borders fins, etc.)
-const double kStrokeWidthThin = 2.0;          // Stroke fin
-
-// Letter spacing
-const double kLetterSpacingWide = 4.0;        // Espacement large entre lettres
 
 // Opacités (pour .withOpacity())
 const double kOpacityHigh = 0.9;              // Très visible
-const double kOpacityMediumHigh = 0.8;        // Entre haut et moyen  ← AJOUTER CETTE LIGNE
 const double kOpacityMedium = 0.7;            // Moyennement visible
-const double kOpacityMediumLow = 0.6;         // Entre moyen et bas
 const double kOpacityLow = 0.5;               // Peu visible
 const double kOpacityVeryLow = 0.3;           // Très peu visible
 const double kOpacityMinimal = 0.2;           // Minimal
-
-// Letter spacing
-const double kLetterSpacingNormal = 1.0;      // Espacement normal entre lettres

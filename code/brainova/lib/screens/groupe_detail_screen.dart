@@ -181,6 +181,7 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
               sessionCount = sessionsSnapshot.data!.docs.length;
               for (final doc in sessionsSnapshot.data!.docs) {
                 final data = doc.data() as Map<String, dynamic>;
+                // Même code que session_detail_screen qui marche
                 final dureeSecondes = data['dureeSecondes'] ?? (data['dureeMinutes'] ?? 0) * 60;
                 totalSeconds += dureeSecondes as int;
               }
@@ -190,24 +191,18 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
               margin: const EdgeInsets.symmetric(horizontal: kScreenPadding),
               padding: const EdgeInsets.all(kLargeSpace),
               decoration: BoxDecoration(
-                color: kSurfaceColor.withOpacity(kOpacityMedium),
+                color: kSurfaceColor.withOpacity(0.8),
                 borderRadius: BorderRadius.circular(kCardRadius),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Nom du groupe avec icône
+                  // Nom du groupe avec émoji
                   Row(
                     children: [
-                      const Icon(
-                        Icons.auto_awesome,
-                        size: kIconSizeMedium,
-                        color: kAccentColor,
-                      ),
-                      const SizedBox(width: kSmallSpace),
                       Expanded(
                         child: Text(
-                          widget.nom,
+                          '${widget.nom} ✨',
                           style: kTitleMedium,
                         ),
                       ),
@@ -231,7 +226,7 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
                       vertical: kPaddingVerticalXS,
                     ),
                     decoration: BoxDecoration(
-                      color: groupColor.withOpacity(kOpacityMinimal),
+                      color: groupColor.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(kPaddingHorizontalXS),
                     ),
                     child: Text(
@@ -393,6 +388,7 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
             final doc = snapshot.data!.docs[index];
             final data = doc.data() as Map<String, dynamic>;
 
+            // Même code que session_detail_screen qui marche
             final dureeSecondes = data['dureeSecondes'] ?? (data['dureeMinutes'] ?? 0) * 60;
 
             return _buildSessionCard(
@@ -430,89 +426,89 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
         );
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: kMediumSpace),
-        padding: const EdgeInsets.all(kMediumSpace),
-        decoration: BoxDecoration(
-          color: kSurfaceColor.withOpacity(kOpacityMediumLow),
-          borderRadius: BorderRadius.circular(kInputRadius),
-          border: Border.all(
-            color: kPrimaryColor,
-            width: kBorderWidthThin,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    sujet,
-                    style: kTitleMedium.copyWith(fontSize: kFontSizeLarge),
-                  ),
-                ),
-                if (isTermine)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: kSmallSpace,
-                      vertical: kPaddingVerticalXS,
-                    ),
-                    decoration: BoxDecoration(
-                      color: kAccentPurple.withOpacity(kOpacityMinimal),
-                      borderRadius: BorderRadius.circular(kPaddingHorizontalXS),
-                    ),
-                    child: Text(
-                      'Terminé',
-                      style: kBodyMedium.copyWith(
-                        fontSize: kFontSizeXSmall,
-                        color: kAccentPurple,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: kSmallSpace),
-            Row(
-              children: [
-                const Icon(Icons.calendar_today, size: kIconSizeSmall, color: kTextSecondary),
-                const SizedBox(width: kPaddingHorizontalXS),
-                Text(
-                  _formatDate(date),
-                  style: kBodyMedium.copyWith(
-                    fontSize: kFontSizeSmall,
-                    color: kTextSecondary,
-                  ),
-                ),
-                const SizedBox(width: kMediumSpace),
-                const Icon(Icons.access_time, size: kIconSizeSmall, color: kTextSecondary),
-                const SizedBox(width: kPaddingHorizontalXS),
-                Text(
-                  _formatDuration(duree),
-                  style: kBodyMedium.copyWith(
-                    fontSize: kFontSizeSmall,
-                    color: kTextSecondary,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: kPaddingVerticalXS),
-            Row(
-              children: [
-                const Icon(Icons.people, size: kIconSizeSmall, color: kTextSecondary),
-                const SizedBox(width: kPaddingHorizontalXS),
-                Text(
-                  '${participants.length} participants',
-                  style: kBodyMedium.copyWith(
-                    fontSize: kFontSizeSmall,
-                    color: kTextSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ],
+      margin: const EdgeInsets.only(bottom: kMediumSpace),
+      padding: const EdgeInsets.all(kMediumSpace),
+      decoration: BoxDecoration(
+        color: kSurfaceColor.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(kInputRadius),
+        border: Border.all(
+          color: kPrimaryColor,
+          width: 1,
         ),
       ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  sujet,
+                  style: kTitleMedium.copyWith(fontSize: kFontSizeLarge),
+                ),
+              ),
+              if (isTermine)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: kSmallSpace,
+                    vertical: kPaddingVerticalXS,
+                  ),
+                  decoration: BoxDecoration(
+                    color: kAccentPurple.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(kPaddingHorizontalXS),
+                  ),
+                  child: Text(
+                    'Terminé',
+                    style: kBodyMedium.copyWith(
+                      fontSize: kFontSizeXSmall,
+                      color: kAccentPurple,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: kSmallSpace),
+          Row(
+            children: [
+              Icon(Icons.calendar_today, size: kIconSizeSmall, color: kTextSecondary),
+              const SizedBox(width: kPaddingHorizontalXS),
+              Text(
+                _formatDate(date),
+                style: kBodyMedium.copyWith(
+                  fontSize: kFontSizeSmall,
+                  color: kTextSecondary,
+                ),
+              ),
+              const SizedBox(width: kMediumSpace),
+              Icon(Icons.access_time, size: kIconSizeSmall, color: kTextSecondary),
+              const SizedBox(width: kPaddingHorizontalXS),
+              Text(
+                _formatDuration(duree),
+                style: kBodyMedium.copyWith(
+                  fontSize: kFontSizeSmall,
+                  color: kTextSecondary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: kPaddingVerticalXS),
+          Row(
+            children: [
+              Icon(Icons.people, size: kIconSizeSmall, color: kTextSecondary),
+              const SizedBox(width: kPaddingHorizontalXS),
+              Text(
+                '${participants.length} participants',
+                style: kBodyMedium.copyWith(
+                  fontSize: kFontSizeSmall,
+                  color: kTextSecondary,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
     );
   }
 
@@ -525,7 +521,7 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
           children: [
             const Icon(
               Icons.event_note,
-              size: kIconSizeXXXL,
+              size: kIconSizeXL * 2,
               color: kTextSecondary,
             ),
             const SizedBox(height: kLargeSpace),
@@ -566,6 +562,7 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
           for (final sessionDoc in sessionsSnapshot.data!.docs) {
             final sessionData = sessionDoc.data() as Map<String, dynamic>;
             final participants = List<String>.from(sessionData['participantIds'] ?? []);
+            // Même code que session_detail_screen qui marche
             final duree = sessionData['dureeSecondes'] ?? (sessionData['dureeMinutes'] ?? 0) * 60;
 
             for (final userId in participants) {
@@ -609,23 +606,25 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
     return StreamBuilder<DocumentSnapshot>(
       stream: _firestore.collection('users').doc(userId).snapshots(),
       builder: (context, userSnapshot) {
+        // ⭐ CORRECTION: État de chargement
         if (userSnapshot.connectionState == ConnectionState.waiting) {
           return Container(
             margin: const EdgeInsets.only(bottom: kMediumSpace),
             padding: const EdgeInsets.all(kMediumSpace),
             decoration: BoxDecoration(
-              color: kSurfaceColor.withOpacity(kOpacityMediumLow),
+              color: kSurfaceColor.withOpacity(0.6),
               borderRadius: BorderRadius.circular(kInputRadius),
             ),
             child: const Center(
               child: CircularProgressIndicator(
                 color: kAccentColor,
-                strokeWidth: kStrokeWidthThin,
+                strokeWidth: 2,
               ),
             ),
           );
         }
 
+        // ⭐ CORRECTION: Données par défaut
         String fullName = 'Utilisateur inconnu';
         
         if (userSnapshot.hasData && userSnapshot.data!.exists) {
@@ -650,11 +649,11 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
           margin: const EdgeInsets.only(bottom: kMediumSpace),
           padding: const EdgeInsets.all(kMediumSpace),
           decoration: BoxDecoration(
-            color: kSurfaceColor.withOpacity(kOpacityMediumLow),
+            color: kSurfaceColor.withOpacity(0.6),
             borderRadius: BorderRadius.circular(kInputRadius),
             border: Border.all(
               color: rank <= 3 ? rankColor : kPrimaryColor,
-              width: rank <= 3 ? kBorderWidth : kBorderWidthThin,
+              width: rank <= 3 ? kBorderWidth : 1,
             ),
           ),
           child: Row(
@@ -664,7 +663,7 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
                 width: kAvatarSizeSmall,
                 height: kAvatarSizeSmall,
                 decoration: BoxDecoration(
-                  color: rankColor.withOpacity(kOpacityMinimal),
+                  color: rankColor.withOpacity(0.2),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -701,7 +700,7 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
                   vertical: kPaddingVerticalXS,
                 ),
                 decoration: BoxDecoration(
-                  color: rankColor.withOpacity(kOpacityMinimal),
+                  color: rankColor.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(kPaddingHorizontalXS),
                 ),
                 child: Text(
@@ -728,7 +727,7 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
           children: [
             const Icon(
               Icons.emoji_events,
-              size: kIconSizeXXXL,
+              size: kIconSizeXL * 2,
               color: kTextSecondary,
             ),
             const SizedBox(height: kLargeSpace),

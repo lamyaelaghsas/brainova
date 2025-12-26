@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:brainova/styles/colors.dart';
 import 'package:brainova/styles/sizes.dart';
-import 'package:brainova/styles/texts.dart';
-
 
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -12,30 +10,6 @@ class CustomBottomNavBar extends StatelessWidget {
     required this.currentIndex,
   });
 
-  // ========================================
-  // MÉTHODES - NAVIGATION
-  // ========================================
-  
-  void _onItemTapped(BuildContext context, int index) {
-    if (currentIndex == index) return;
-
-    switch (index) {
-      case 0:
-        Navigator.pushReplacementNamed(context, '/notifications');
-        break;
-      case 1:
-        Navigator.pushReplacementNamed(context, '/groupes');
-        break;
-      case 2:
-        Navigator.pushReplacementNamed(context, '/profil');
-        break;
-    }
-  }
-
-  // ========================================
-  // BUILD - UI PRINCIPALE
-  // ========================================
-  
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -43,9 +17,9 @@ class CustomBottomNavBar extends StatelessWidget {
         color: kSurfaceColor,
         boxShadow: [
           BoxShadow(
-            color: kBlack.withOpacity(kOpacityVeryLow),
-            blurRadius: kBlurRadiusMedium,
-            offset: kShadowOffsetTop,
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
           ),
         ],
       ),
@@ -56,9 +30,27 @@ class CustomBottomNavBar extends StatelessWidget {
         selectedItemColor: kAccentColor,
         unselectedItemColor: kTextSecondary,
         type: BottomNavigationBarType.fixed,
-        selectedFontSize: kFontSizeSmall,
-        unselectedFontSize: kFontSizeSmall,
-        onTap: (index) => _onItemTapped(context, index),
+        selectedFontSize: 12,
+        unselectedFontSize: 12,
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              if (currentIndex != 0) {
+                Navigator.pushReplacementNamed(context, '/notifications');
+              }
+              break;
+            case 1:
+              if (currentIndex != 1) {
+                Navigator.pushReplacementNamed(context, '/groupes');
+              }
+              break;
+            case 2:
+              if (currentIndex != 2) {
+                Navigator.pushReplacementNamed(context, '/profil');
+              }
+              break;
+          }
+        },
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications),

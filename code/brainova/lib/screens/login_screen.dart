@@ -15,20 +15,12 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // ========================================
-  // CONTRÔLEURS & ÉTAT
-  // ========================================
-  
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _isLoading = false;
 
-  // ========================================
-  // LIFECYCLE
-  // ========================================
-  
   @override
   void dispose() {
     _emailController.dispose();
@@ -36,10 +28,6 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  // ========================================
-  // MÉTHODES - AUTHENTIFICATION
-  // ========================================
-  
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -80,10 +68,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // ========================================
-  // BUILD - UI PRINCIPALE
-  // ========================================
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -104,296 +88,237 @@ class _LoginScreenState extends State<LoginScreen> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    const SizedBox(height: kSpacingHeaderLarge),
+                    const SizedBox(height: kLargeSpace * 2.5),
 
-                    // ========================================
-                    // SECTION HEADER - LOGO & TITRE
-                    // ========================================
-                    
-                    _buildLogo(),
+                    // === LOGO ===
+                    const SizedBox(
+                      width: kLogoSize,
+                      height: kLogoSize,
+                      child: Image(
+                        image: AssetImage('assets/icons/cerveau.png'),
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+
                     const SizedBox(height: kPaddingVertical),
-                    _buildTitle(),
+
+                    // === TITRE BRAINOVA ===
+                    const Text(
+                      'BRAINOVA',
+                      style: kTitleLarge,
+                    ),
+
                     const SizedBox(height: kIndicatorSize),
-                    _buildSubtitle(),
+
+                    // === SOUS-TITRE ===
+                    Text(
+                      'Étudiez ensemble, brillez ensemble',
+                      style: kBodyMedium.copyWith(
+                        fontSize: kFontSizeSmall,
+                        color: kTextSecondary,
+                      ),
+                    ),
+
                     const SizedBox(height: kPaddingVerticalL),
 
-                    // ========================================
-                    // SECTION FORMULAIRE - CONNEXION
-                    // ========================================
-                    
-                    _buildLoginForm(),
+                    // === CARTE FORMULAIRE ===
+                    Container(
+                      padding: const EdgeInsets.all(kLargeSpace),
+                      decoration: BoxDecoration(
+                        color: kSurfaceColor.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(kCardRadius),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Titre "Connexion"
+                          const Text(
+                            'Connexion',
+                            style: kTitleMedium,
+                          ),
+
+                          const SizedBox(height: kLargeSpace),
+
+                          // === CHAMP EMAIL ===
+                          Text(
+                            'Adresse email',
+                            style: kBodyMedium.copyWith(
+                              fontSize: kFontSizeSmall,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: kIndicatorSize),
+                          TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            style: kBodyMedium,
+                            decoration: InputDecoration(
+                              hintText: 'votre@email.com',
+                              hintStyle: kBodyMedium.copyWith(
+                                color: kTextSecondary.withOpacity(0.5),
+                              ),
+                              filled: true,
+                              fillColor: kBackgroundColor.withOpacity(0.5),
+                              prefixIcon: const Icon(
+                                Icons.email_outlined,
+                                color: kAccentPurple,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(kInputRadius),
+                                borderSide: BorderSide.none,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: kPaddingHorizontal,
+                                vertical: kPaddingVerticalS + kIndicatorSize,
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Entrez votre email';
+                              }
+                              if (!value.contains('@')) {
+                                return 'Email invalide';
+                              }
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: kPaddingVertical),
+
+                          // === CHAMP MOT DE PASSE ===
+                          Text(
+                            'Mot de passe',
+                            style: kBodyMedium.copyWith(
+                              fontSize: kFontSizeSmall,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: kIndicatorSize),
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: _obscurePassword,
+                            style: kBodyMedium,
+                            decoration: InputDecoration(
+                              hintText: '••••••••',
+                              hintStyle: kBodyMedium.copyWith(
+                                color: kTextSecondary.withOpacity(0.5),
+                              ),
+                              filled: true,
+                              fillColor: kBackgroundColor.withOpacity(0.5),
+                              prefixIcon: const Icon(
+                                Icons.lock_outline,
+                                color: kAccentPurple,
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                  color: kTextSecondary,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscurePassword = !_obscurePassword;
+                                  });
+                                },
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(kInputRadius),
+                                borderSide: BorderSide.none,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: kPaddingHorizontal,
+                                vertical: kPaddingVerticalS + kIndicatorSize,
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Entrez votre mot de passe';
+                              }
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: kLargeSpace),
+
+                          // === BOUTON SE CONNECTER ===
+                          SizedBox(
+                            width: double.infinity,
+                            height: kButtonHeight,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [kAccentColor, kAccentPurple],
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                ),
+                                borderRadius: BorderRadius.circular(kBorderRadiusLarge),
+                              ),
+                              child: ElevatedButton(
+                                onPressed: _isLoading ? null : _handleLogin,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  shadowColor: Colors.transparent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(kBorderRadiusLarge),
+                                  ),
+                                ),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        height: kIconSizeMedium,
+                                        width: kIconSizeMedium,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: kBackgroundColor,
+                                        ),
+                                      )
+                                    : Text(
+                                        'Se connecter',
+                                        style: kButtonText.copyWith(
+                                          fontSize: kFontSizeLarge,
+                                          color: kBackgroundColor,
+                                        ),
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
                     const SizedBox(height: kLargeSpace),
 
-                    // ========================================
-                    // SECTION NAVIGATION - LIEN INSCRIPTION
-                    // ========================================
-                    
-                    _buildRegisterLink(),
+                    // === LIEN VERS INSCRIPTION ===
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, '/register');
+                      },
+                      child: RichText(
+                        text: TextSpan(
+                          text: 'Pas encore de compte ? ',
+                          style: kBodyMedium.copyWith(
+                            fontSize: kFontSizeMedium,
+                          ),
+                          children: const [
+                            TextSpan(
+                              text: 'S\'inscrire',
+                              style: TextStyle(
+                                color: kAccentColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
                     const SizedBox(height: kPaddingVerticalL),
                   ],
                 ),
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  // ========================================
-  // WIDGETS - HEADER
-  // ========================================
-  
-  Widget _buildLogo() {
-    return const SizedBox(
-      width: kLogoSize,
-      height: kLogoSize,
-      child: Image(
-        image: AssetImage('assets/icons/cerveau.png'),
-        fit: BoxFit.contain,
-      ),
-    );
-  }
-
-  Widget _buildTitle() {
-    return const Text(
-      'BRAINOVA',
-      style: kTitleLarge,
-    );
-  }
-
-  Widget _buildSubtitle() {
-    return Text(
-      'Étudiez ensemble, brillez ensemble',
-      style: kBodyMedium.copyWith(
-        fontSize: kFontSizeSmall,
-        color: kTextSecondary,
-      ),
-    );
-  }
-
-  // ========================================
-  // WIDGETS - FORMULAIRE
-  // ========================================
-  
-  Widget _buildLoginForm() {
-    return Container(
-      padding: const EdgeInsets.all(kLargeSpace),
-      decoration: BoxDecoration(
-        color: kSurfaceColor.withOpacity(kOpacityLow),
-        borderRadius: BorderRadius.circular(kCardRadius),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Titre formulaire
-          const Text(
-            'Connexion',
-            style: kTitleMedium,
-          ),
-          const SizedBox(height: kLargeSpace),
-
-          // Champ email
-          _buildEmailField(),
-          const SizedBox(height: kPaddingVertical),
-
-          // Champ mot de passe
-          _buildPasswordField(),
-          const SizedBox(height: kLargeSpace),
-
-          // Bouton connexion
-          _buildLoginButton(),
-        ],
-      ),
-    );
-  }
-
-  // ========================================
-  // WIDGETS - CHAMPS DE SAISIE
-  // ========================================
-  
-  Widget _buildEmailField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Adresse email',
-          style: kBodyMedium.copyWith(
-            fontSize: kFontSizeSmall,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: kIndicatorSize),
-        TextFormField(
-          controller: _emailController,
-          keyboardType: TextInputType.emailAddress,
-          style: kBodyMedium,
-          decoration: InputDecoration(
-            hintText: 'votre@email.com',
-            hintStyle: kBodyMedium.copyWith(
-              color: kTextSecondary.withOpacity(kOpacityLow),
-            ),
-            filled: true,
-            fillColor: kBackgroundColor.withOpacity(kOpacityLow),
-            prefixIcon: const Icon(
-              Icons.email_outlined,
-              color: kAccentPurple,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(kInputRadius),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: kPaddingHorizontal,
-              vertical: kPaddingVerticalS + kIndicatorSize,
-            ),
-          ),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Entrez votre email';
-            }
-            if (!value.contains('@')) {
-              return 'Email invalide';
-            }
-            return null;
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPasswordField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Mot de passe',
-          style: kBodyMedium.copyWith(
-            fontSize: kFontSizeSmall,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: kIndicatorSize),
-        TextFormField(
-          controller: _passwordController,
-          obscureText: _obscurePassword,
-          style: kBodyMedium,
-          decoration: InputDecoration(
-            hintText: '••••••••',
-            hintStyle: kBodyMedium.copyWith(
-              color: kTextSecondary.withOpacity(kOpacityLow),
-            ),
-            filled: true,
-            fillColor: kBackgroundColor.withOpacity(kOpacityLow),
-            prefixIcon: const Icon(
-              Icons.lock_outline,
-              color: kAccentPurple,
-            ),
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscurePassword
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined,
-                color: kTextSecondary,
-              ),
-              onPressed: () {
-                setState(() {
-                  _obscurePassword = !_obscurePassword;
-                });
-              },
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(kInputRadius),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: kPaddingHorizontal,
-              vertical: kPaddingVerticalS + kIndicatorSize,
-            ),
-          ),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Entrez votre mot de passe';
-            }
-            return null;
-          },
-        ),
-      ],
-    );
-  }
-
-  // ========================================
-  // WIDGETS - BOUTONS
-  // ========================================
-  
-  Widget _buildLoginButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: kButtonHeight,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [kAccentColor, kAccentPurple],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          borderRadius: BorderRadius.circular(kBorderRadiusLarge),
-        ),
-        child: ElevatedButton(
-          onPressed: _isLoading ? null : _handleLogin,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            shadowColor: Colors.transparent,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(kBorderRadiusLarge),
-            ),
-          ),
-          child: _isLoading
-              ? const SizedBox(
-                  height: kIconSizeMedium,
-                  width: kIconSizeMedium,
-                  child: CircularProgressIndicator(
-                    strokeWidth: kStrokeWidthThin,
-                    color: kBackgroundColor,
-                  ),
-                )
-              : Text(
-                  'Se connecter',
-                  style: kButtonText.copyWith(
-                    fontSize: kFontSizeLarge,
-                    color: kBackgroundColor,
-                  ),
-                ),
-        ),
-      ),
-    );
-  }
-
-  // ========================================
-  // WIDGETS - NAVIGATION
-  // ========================================
-  
-  Widget _buildRegisterLink() {
-    return TextButton(
-      onPressed: () {
-        Navigator.pop(context);
-        Navigator.pushNamed(context, '/register');
-      },
-      child: RichText(
-        text: TextSpan(
-          text: 'Pas encore de compte ? ',
-          style: kBodyMedium.copyWith(
-            fontSize: kFontSizeMedium,
-          ),
-          children: const [
-            TextSpan(
-              text: 'S\'inscrire',
-              style: TextStyle(
-                color: kAccentColor,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
         ),
       ),
     );
