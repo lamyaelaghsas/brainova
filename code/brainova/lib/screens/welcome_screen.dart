@@ -14,20 +14,32 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
+  // ========================================
+  // CONTRÔLEURS & ÉTAT
+  // ========================================
+  
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
+  // ========================================
+  // LIFECYCLE
+  // ========================================
+  
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
   }
 
+  // ========================================
+  // MÉTHODES - NAVIGATION
+  // ========================================
+  
   void _nextPage() {
     if (_currentPage < 3) {
       _pageController.animateToPage(
         _currentPage + 1,
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: kAnimationDurationShort),
         curve: Curves.easeInOut,
       );
     }
@@ -36,11 +48,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   void _skipToEnd() {
     _pageController.animateToPage(
       3,
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: kAnimationDurationMedium),
       curve: Curves.easeInOut,
     );
   }
 
+  // ========================================
+  // BUILD - UI PRINCIPALE
+  // ========================================
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,6 +72,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         child: SafeArea(
           child: Column(
             children: [
+              // ========================================
+              // SECTION PAGES ONBOARDING
+              // ========================================
+              
               Expanded(
                 child: PageView(
                   controller: _pageController,
@@ -92,8 +112,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   ],
                 ),
               ),
+
+              // ========================================
+              // SECTION INDICATEURS
+              // ========================================
+              
               _buildPageIndicators(),
               const SizedBox(height: kSpacingLargeExtra),
+
+              // ========================================
+              // SECTION BOUTONS
+              // ========================================
+              
               _buildBottomButtons(),
               const SizedBox(height: kPaddingVerticalL),
             ],
@@ -103,6 +133,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     );
   }
 
+  // ========================================
+  // WIDGETS - PAGE ONBOARDING
+  // ========================================
+  
   Widget _buildOnboardingPage({
     required String icon,
     required Color glowColor,
@@ -115,13 +149,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Spacer(flex: 2),
+          
+          // Icône avec effet glow
           Container(
             width: kOnboardingIconSize,
             height: kOnboardingIconSize,
             decoration: BoxDecoration(
               boxShadow: [
                 BoxShadow(
-                  color: glowColor.withOpacity(0.3),
+                  color: glowColor.withOpacity(kOpacityVeryLow),
                   blurRadius: kGlowBlurRadius,
                   spreadRadius: 0,
                 ),
@@ -136,20 +172,24 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             ),
           ),
           const SizedBox(height: kSpacingXXLarge),
+          
+          // Titre
           Text(
             title,
             style: kTitleMedium.copyWith(
               color: glowColor,
-              letterSpacing: 0.5,
+              letterSpacing: kLetterSpacingNarrow,
             ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: kPaddingVertical),
+          
+          // Sous-titre
           Text(
             subtitle,
             style: kBodyMedium.copyWith(
               color: kTextSecondary,
-              height: 1.5,
+              height: kLineHeightNormal,
             ),
             textAlign: TextAlign.center,
           ),
@@ -159,6 +199,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     );
   }
 
+  // ========================================
+  // WIDGETS - INDICATEURS
+  // ========================================
+  
   Widget _buildPageIndicators() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -176,109 +220,127 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     );
   }
 
+  // ========================================
+  // WIDGETS - BOUTONS
+  // ========================================
+  
   Widget _buildBottomButtons() {
     if (_currentPage < 3) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: kPaddingHorizontalL),
-        child: Column(
-          children: [
-            SizedBox(
-              width: double.infinity,
-              height: kButtonHeight,
-              child: ElevatedButton(
-                onPressed: _nextPage,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: kAccentColor,
-                  foregroundColor: kBackgroundColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(kBorderRadiusLarge),
-                  ),
-                  elevation: 0,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Suivant',
-                      style: kButtonText.copyWith(
-                        fontSize: kFontSizeLarge,
-                      ),
-                    ),
-                    const SizedBox(width: kIndicatorSize),
-                    const Icon(Icons.arrow_forward, size: kPaddingVertical),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: kMediumSpace),
-            TextButton(
-              onPressed: _skipToEnd,
-              child: Text(
-                'Passer',
-                style: kBodyMedium.copyWith(color: kTextSecondary),
-              ),
-            ),
-          ],
-        ),
-      );
+      return _buildNavigationButtons();
     } else {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: kPaddingHorizontalL),
-        child: Column(
-          children: [
-            SizedBox(
-              width: double.infinity,
-              height: kButtonHeight,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/login');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: kPrimaryColor,
-                  foregroundColor: kWhiteColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(kBorderRadiusLarge),
-                  ),
-                  elevation: 0,
-                ),
-                child: Text(
-                  'Je me connecte',
-                  style: kButtonText.copyWith(
-                    fontSize: kFontSizeLarge,
-                    color: kWhiteColor,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: kMediumSpace),
-            SizedBox(
-              width: double.infinity,
-              height: kButtonHeight,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/register');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: kAccentPink,
-                  foregroundColor: kWhiteColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(kBorderRadiusLarge),
-                  ),
-                  elevation: kButtonElevationHigh,
-                  shadowColor: kAccentPink.withOpacity(0.5),
-                ),
-                child: Text(
-                  'Créer mon compte',
-                  style: kButtonText.copyWith(
-                    fontSize: kFontSizeLarge,
-                    color: kWhiteColor,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
+      return _buildAuthButtons();
     }
+  }
+
+  Widget _buildNavigationButtons() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: kPaddingHorizontalL),
+      child: Column(
+        children: [
+          // Bouton Suivant
+          SizedBox(
+            width: double.infinity,
+            height: kButtonHeight,
+            child: ElevatedButton(
+              onPressed: _nextPage,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: kAccentColor,
+                foregroundColor: kBackgroundColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(kBorderRadiusLarge),
+                ),
+                elevation: 0,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Suivant',
+                    style: kButtonText.copyWith(
+                      fontSize: kFontSizeLarge,
+                    ),
+                  ),
+                  const SizedBox(width: kIndicatorSize),
+                  const Icon(Icons.arrow_forward, size: kIconSizeMedium),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: kMediumSpace),
+          
+          // Bouton Passer
+          TextButton(
+            onPressed: _skipToEnd,
+            child: Text(
+              'Passer',
+              style: kBodyMedium.copyWith(color: kTextSecondary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAuthButtons() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: kPaddingHorizontalL),
+      child: Column(
+        children: [
+          // Bouton Connexion
+          SizedBox(
+            width: double.infinity,
+            height: kButtonHeight,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/login');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: kPrimaryColor,
+                foregroundColor: kWhiteColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(kBorderRadiusLarge),
+                ),
+                elevation: 0,
+              ),
+              child: Text(
+                'Je me connecte',
+                style: kButtonText.copyWith(
+                  fontSize: kFontSizeLarge,
+                  color: kWhiteColor,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: kMediumSpace),
+          
+          // Bouton Inscription
+          SizedBox(
+            width: double.infinity,
+            height: kButtonHeight,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/register');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: kAccentPink,
+                foregroundColor: kWhiteColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(kBorderRadiusLarge),
+                ),
+                elevation: kButtonElevationHigh,
+                shadowColor: kAccentPink.withOpacity(kOpacityLow),
+              ),
+              child: Text(
+                'Créer mon compte',
+                style: kButtonText.copyWith(
+                  fontSize: kFontSizeLarge,
+                  color: kWhiteColor,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

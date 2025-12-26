@@ -22,3 +22,7 @@ const double kScreenPadding = 20.0;
 // Espacements spécifiques
 const double kSpacingXXLarge = 60.0;          // Espace très large onboarding
 const double kSpacingLargeExtra = 29.0;       // Espacement entre indicateurs et boutons
+
+const double kSpacingHeaderLarge = 62.5;      // Espace header login/register (kLargeSpace * 2.5)
+
+const double kPaddingVerticalXL = 40.0;        // ← AJOUTER CETTE LIGNE (kLargeSpace + kPaddingVertical)

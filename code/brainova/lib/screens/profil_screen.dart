@@ -17,22 +17,23 @@ class ProfilScreen extends StatefulWidget {
 }
 
 class _ProfilScreenState extends State<ProfilScreen> {
+  // ========================================
+  // SERVICES FIREBASE
+  // ========================================
+  
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  // ========================================
+  // MÉTHODES - FORMATAGE
+  // ========================================
+  
   String _formatDuration(int totalSeconds) {
     final hours = totalSeconds ~/ 3600;
     final minutes = (totalSeconds % 3600) ~/ 60;
+    final seconds = totalSeconds % 60;
 
-    if (hours > 0 && minutes > 0) {
-      return '${hours}h\n${minutes}min';
-    } else if (hours > 0) {
-      return '${hours}h\n0min';
-    } else if (minutes > 0) {
-      return '0h\n${minutes}min';
-    } else {
-      return '0h\n0min';
-    }
+    return '${hours}h ${minutes}min ${seconds}sec';
   }
 
   String _formatMemberSince(DateTime date) {
@@ -43,14 +44,17 @@ class _ProfilScreenState extends State<ProfilScreen> {
     return '${months[date.month]} ${date.year}';
   }
 
-  // Calculer les badges en fonction des stats
+  // ========================================
+  // MÉTHODES - CALCUL STATS & BADGES
+  // ========================================
+  
   List<Map<String, dynamic>> _calculateBadges(int nbSessions, int totalSeconds, int nbGroupes) {
     final badges = <Map<String, dynamic>>[];
 
     // Badge Nova Brillante : 10+ sessions
     if (nbSessions >= 10) {
       badges.add({
-        'icon': '⭐',
+        'icon': Icons.star,
         'name': 'Nova Brillante',
         'description': '10 sessions terminées',
         'unlocked': true,
@@ -60,7 +64,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
     // Badge Studieux : 5+ sessions
     if (nbSessions >= 5) {
       badges.add({
-        'icon': '🏆',
+        'icon': Icons.emoji_events,
         'name': 'Studieux',
         'description': '5 sessions terminées',
         'unlocked': true,
@@ -70,7 +74,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
     // Badge Marathon : 2h+ d'étude total
     if (totalSeconds >= 7200) {
       badges.add({
-        'icon': '⏰',
+        'icon': Icons.timer,
         'name': 'Marathon',
         'description': '2h+ d\'étude',
         'unlocked': true,
@@ -80,7 +84,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
     // Badge Social : 3+ groupes
     if (nbGroupes >= 3) {
       badges.add({
-        'icon': '👥',
+        'icon': Icons.groups,
         'name': 'Social',
         'description': 'Membre de 3+ groupes',
         'unlocked': true,
@@ -90,7 +94,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
     // Badges verrouillés (à débloquer)
     if (nbSessions < 10) {
       badges.add({
-        'icon': '🔒',
+        'icon': Icons.lock,
         'name': 'Nova Brillante',
         'description': 'Terminez 10 sessions',
         'unlocked': false,
@@ -99,7 +103,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
 
     if (nbSessions < 5) {
       badges.add({
-        'icon': '🔒',
+        'icon': Icons.lock,
         'name': 'Studieux',
         'description': 'Terminez 5 sessions',
         'unlocked': false,
@@ -109,6 +113,41 @@ class _ProfilScreenState extends State<ProfilScreen> {
     return badges;
   }
 
+  Future<Map<String, int>> _calculateStats(String userId) async {
+    int totalSessions = 0;
+    int totalSeconds = 0;
+
+    // Récupérer tous les groupes dont l'utilisateur est membre
+    final groupesSnapshot = await _firestore
+        .collection('groupes')
+        .where('memberIds', arrayContains: userId)
+        .get();
+
+    // Pour chaque groupe, récupérer ses sessions
+    for (final groupeDoc in groupesSnapshot.docs) {
+      final sessionsSnapshot = await _firestore
+          .collection('groupes')
+          .doc(groupeDoc.id)
+          .collection('sessions')
+          .where('participantIds', arrayContains: userId)
+          .where('isTermine', isEqualTo: true)
+          .get();
+
+      totalSessions += sessionsSnapshot.docs.length;
+
+      for (final sessionDoc in sessionsSnapshot.docs) {
+        final sessionData = sessionDoc.data();
+        totalSeconds += (sessionData['dureeSecondes'] ?? 0) as int;
+      }
+    }
+
+    return {'sessions': totalSessions, 'seconds': totalSeconds};
+  }
+
+  // ========================================
+  // BUILD - UI PRINCIPALE
+  // ========================================
+  
   @override
   Widget build(BuildContext context) {
     final userId = _auth.currentUser?.uid;
@@ -154,14 +193,12 @@ class _ProfilScreenState extends State<ProfilScreen> {
                 builder: (context, groupesSnapshot) {
                   final nbGroupes = groupesSnapshot.hasData ? groupesSnapshot.data!.docs.length : 0;
 
-                  // Calculer stats depuis toutes les sessions de tous les groupes
                   return FutureBuilder<Map<String, int>>(
                     future: _calculateStats(userId),
                     builder: (context, statsSnapshot) {
                       final stats = statsSnapshot.data ?? {'sessions': 0, 'seconds': 0};
                       final nbSessions = stats['sessions']!;
                       final totalSeconds = stats['seconds']!;
-
                       final badges = _calculateBadges(nbSessions, totalSeconds, nbGroupes);
 
                       return SingleChildScrollView(
@@ -169,270 +206,40 @@ class _ProfilScreenState extends State<ProfilScreen> {
                           padding: const EdgeInsets.all(kScreenPadding),
                           child: Column(
                             children: [
-                              // Avatar + Nom + Email
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(kLargeSpace + kMediumSpace),
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [Color(0xFFFFD700), Color(0xFFDB7BDB)],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                  borderRadius: BorderRadius.circular(kCardRadius),
-                                ),
-                                child: Column(
-                                  children: [
-                                    // Avatar
-                                    Container(
-                                      width: kAvatarSizeLarge * 1.5,
-                                      height: kAvatarSizeLarge * 1.5,
-                                      decoration: BoxDecoration(
-                                        gradient: const LinearGradient(
-                                          colors: [Color(0xFFFFD700), Color(0xFFDB7BDB)],
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                        ),
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: kBackgroundColor,
-                                          width: 4,
-                                        ),
-                                      ),
-                                      child: const Icon(
-                                        Icons.person,
-                                        size: kIconSizeXL,
-                                        color: kBackgroundColor,
-                                      ),
-                                    ),
-                                    const SizedBox(height: kMediumSpace),
-                                    // Nom
-                                    Text(
-                                      '$prenom $nom',
-                                      style: kTitleLarge.copyWith(
-                                        color: kBackgroundColor,
-                                        fontSize: kFontSizeXXLarge,
-                                      ),
-                                    ),
-                                    const SizedBox(height: kPaddingVerticalXS),
-                                    // Email
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        const Icon(
-                                          Icons.email,
-                                          size: kIconSizeSmall,
-                                          color: kBackgroundColor,
-                                        ),
-                                        const SizedBox(width: kPaddingHorizontalXS),
-                                        Text(
-                                          email,
-                                          style: kBodyMedium.copyWith(
-                                            color: kBackgroundColor,
-                                            fontSize: kFontSizeMedium,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: kMediumSpace),
-                                    // Badge principal si débloqué
-                                    if (badges.any((b) => b['unlocked'] && b['name'] == 'Nova Brillante'))
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: kLargeSpace,
-                                          vertical: kPaddingVerticalS,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          gradient: const LinearGradient(
-                                            colors: [Color(0xFFFFD700), Color(0xFFFF69B4)],
-                                          ),
-                                          borderRadius: BorderRadius.circular(kInputRadius),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            const Text(
-                                              '⭐',
-                                              style: TextStyle(fontSize: kFontSizeLarge),
-                                            ),
-                                            const SizedBox(width: kPaddingHorizontalXS),
-                                            Text(
-                                              'Nova Brillante ⭐',
-                                              style: kTitleMedium.copyWith(
-                                                color: kBackgroundColor,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-
+                              // ========================================
+                              // SECTION PROFIL
+                              // ========================================
+                              
+                              _buildProfileHeader(prenom, nom, email),
                               const SizedBox(height: kLargeSpace),
 
-                              // Stats : Temps d'étude, Sessions, Groupes
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _buildStatCard(
-                                      icon: Icons.access_time,
-                                      label: 'Temps\nd\'étude',
-                                      value: _formatDuration(totalSeconds),
-                                      color: const Color(0xFF9B59B6),
-                                    ),
-                                  ),
-                                  const SizedBox(width: kMediumSpace),
-                                  Expanded(
-                                    child: _buildStatCard(
-                                      icon: Icons.star,
-                                      label: 'Sessions',
-                                      value: '$nbSessions',
-                                      color: const Color(0xFFFFD700),
-                                    ),
-                                  ),
-                                  const SizedBox(width: kMediumSpace),
-                                  Expanded(
-                                    child: _buildStatCard(
-                                      icon: Icons.people,
-                                      label: 'Groupes',
-                                      value: '$nbGroupes',
-                                      color: const Color(0xFFDB7BDB),
-                                    ),
-                                  ),
-                                ],
-                              ),
-
+                              // ========================================
+                              // SECTION STATISTIQUES
+                              // ========================================
+                              
+                              _buildStatsCards(totalSeconds, nbSessions, nbGroupes),
                               const SizedBox(height: kLargeSpace),
 
-                              // Informations du compte
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(kLargeSpace),
-                                decoration: BoxDecoration(
-                                  color: kSurfaceColor.withOpacity(0.8),
-                                  borderRadius: BorderRadius.circular(kCardRadius),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Informations du compte',
-                                      style: kTitleMedium.copyWith(
-                                        fontSize: kFontSizeLarge,
-                                      ),
-                                    ),
-                                    const SizedBox(height: kMediumSpace),
-                                    Row(
-                                      children: [
-                                        const Icon(
-                                          Icons.calendar_today,
-                                          size: kIconSizeMedium,
-                                          color: kAccentPurple,
-                                        ),
-                                        const SizedBox(width: kSmallSpace),
-                                        Text(
-                                          'Membre depuis ${_formatMemberSince(createdAt)}',
-                                          style: kBodyMedium.copyWith(
-                                            color: kTextSecondary,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-
+                              // ========================================
+                              // SECTION INFORMATIONS COMPTE
+                              // ========================================
+                              
+                              _buildAccountInfo(createdAt),
                               const SizedBox(height: kLargeSpace),
 
-                              // Badges débloqués
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(kLargeSpace),
-                                decoration: BoxDecoration(
-                                  color: kSurfaceColor.withOpacity(0.8),
-                                  borderRadius: BorderRadius.circular(kCardRadius),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '🏆 Badges',
-                                      style: kTitleMedium.copyWith(
-                                        fontSize: kFontSizeLarge,
-                                      ),
-                                    ),
-                                    const SizedBox(height: kMediumSpace),
-                                    ...badges.map((badge) {
-                                      return _buildBadgeItem(
-                                        icon: badge['icon'],
-                                        name: badge['name'],
-                                        description: badge['description'],
-                                        unlocked: badge['unlocked'],
-                                      );
-                                    }).toList(),
-                                  ],
-                                ),
-                              ),
-
+                              // ========================================
+                              // SECTION BADGES
+                              // ========================================
+                              
+                              _buildBadgesSection(badges),
                               const SizedBox(height: kLargeSpace),
 
-                              // Bouton de déconnexion
-                              SizedBox(
-                                width: double.infinity,
-                                height: kButtonHeight,
-                                child: OutlinedButton.icon(
-                                  onPressed: () async {
-                                    final shouldLogout = await showDialog<bool>(
-                                      context: context,
-                                      builder: (context) => AlertDialog(
-                                        backgroundColor: kSurfaceColor,
-                                        title: const Text('Se déconnecter ?', style: kTitleMedium),
-                                        content: Text(
-                                          'Voulez-vous vraiment vous déconnecter ?',
-                                          style: kBodyMedium.copyWith(color: kTextSecondary),
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () => Navigator.pop(context, false),
-                                            child: const Text('Annuler', style: TextStyle(color: kTextSecondary)),
-                                          ),
-                                          TextButton(
-                                            onPressed: () => Navigator.pop(context, true),
-                                            child: const Text('Déconnexion', style: TextStyle(color: kErrorColor)),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-
-                                    if (shouldLogout == true && mounted) {
-                                      await _auth.signOut();
-                                      Navigator.pushNamedAndRemoveUntil(
-                                        context,
-                                        '/',
-                                        (route) => false,
-                                      );
-                                    }
-                                  },
-                                  icon: const Icon(Icons.logout, color: kErrorColor),
-                                  label: Text(
-                                    'Se déconnecter',
-                                    style: kButtonText.copyWith(
-                                      color: kErrorColor,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  style: OutlinedButton.styleFrom(
-                                    side: const BorderSide(color: kErrorColor, width: kBorderWidth),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(kInputRadius),
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                              const SizedBox(height: kLargeSpace + kLargeSpace),
+                              // ========================================
+                              // SECTION DÉCONNEXION
+                              // ========================================
+                              
+                              _buildLogoutButton(),
+                              const SizedBox(height: kPaddingVerticalXL + kLargeSpace),
                             ],
                           ),
                         ),
@@ -449,6 +256,113 @@ class _ProfilScreenState extends State<ProfilScreen> {
     );
   }
 
+  // ========================================
+  // WIDGETS - HEADER PROFIL
+  // ========================================
+  
+  Widget _buildProfileHeader(String prenom, String nom, String email) {
+    return Row(
+      children: [
+        // Avatar
+        Container(
+          width: kAvatarSizeLarge,
+          height: kAvatarSizeLarge,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [kGradientNotificationStart, kGradientNotificationEnd],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: kAccentColor,
+              width: kBorderWidthThick,
+            ),
+          ),
+          child: const Icon(
+            Icons.person,
+            size: kIconSizeLarge,
+            color: kBackgroundColor,
+          ),
+        ),
+        const SizedBox(width: kMediumSpace),
+        
+        // Nom + Email
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '$prenom $nom',
+                style: kTitleLarge.copyWith(
+                  fontSize: kFontSizeXLarge,
+                ),
+              ),
+              const SizedBox(height: kPaddingVerticalXS),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.email,
+                    size: kIconSizeSmall,
+                    color: kTextSecondary,
+                  ),
+                  const SizedBox(width: kPaddingHorizontalXS),
+                  Expanded(
+                    child: Text(
+                      email,
+                      style: kBodyMedium.copyWith(
+                        color: kTextSecondary,
+                        fontSize: kFontSizeSmall,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ========================================
+  // WIDGETS - CARTES STATISTIQUES
+  // ========================================
+  
+  Widget _buildStatsCards(int totalSeconds, int nbSessions, int nbGroupes) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildStatCard(
+            icon: Icons.access_time,
+            label: 'Temps\nd\'étude',
+            value: _formatDuration(totalSeconds),
+            color: kStatPurple,
+          ),
+        ),
+        const SizedBox(width: kMediumSpace),
+        Expanded(
+          child: _buildStatCard(
+            icon: Icons.star,
+            label: 'Sessions',
+            value: '$nbSessions',
+            color: kStatGold,
+          ),
+        ),
+        const SizedBox(width: kMediumSpace),
+        Expanded(
+          child: _buildStatCard(
+            icon: Icons.people,
+            label: 'Groupes',
+            value: '$nbGroupes',
+            color: kStatPink,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildStatCard({
     required IconData icon,
     required String label,
@@ -458,7 +372,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
     return Container(
       padding: const EdgeInsets.all(kMediumSpace),
       decoration: BoxDecoration(
-        color: kSurfaceColor.withOpacity(0.8),
+        color: kSurfaceColor.withOpacity(kOpacityMedium),
         borderRadius: BorderRadius.circular(kCardRadius),
       ),
       child: Column(
@@ -477,7 +391,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
           Text(
             value,
             style: kTitleLarge.copyWith(
-              fontSize: kFontSizeXLarge,
+              fontSize: kFontSizeMedium,
               color: color,
             ),
             textAlign: TextAlign.center,
@@ -487,8 +401,96 @@ class _ProfilScreenState extends State<ProfilScreen> {
     );
   }
 
+  // ========================================
+  // WIDGETS - INFORMATIONS COMPTE
+  // ========================================
+  
+  Widget _buildAccountInfo(DateTime createdAt) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(kLargeSpace),
+      decoration: BoxDecoration(
+        color: kSurfaceColor.withOpacity(kOpacityMedium),
+        borderRadius: BorderRadius.circular(kCardRadius),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Informations du compte',
+            style: kTitleMedium.copyWith(
+              fontSize: kFontSizeLarge,
+            ),
+          ),
+          const SizedBox(height: kMediumSpace),
+          Row(
+            children: [
+              const Icon(
+                Icons.calendar_today,
+                size: kIconSizeMedium,
+                color: kAccentPurple,
+              ),
+              const SizedBox(width: kSmallSpace),
+              Text(
+                'Membre depuis ${_formatMemberSince(createdAt)}',
+                style: kBodyMedium.copyWith(
+                  color: kTextSecondary,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ========================================
+  // WIDGETS - BADGES
+  // ========================================
+  
+  Widget _buildBadgesSection(List<Map<String, dynamic>> badges) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(kLargeSpace),
+      decoration: BoxDecoration(
+        color: kSurfaceColor.withOpacity(kOpacityMedium),
+        borderRadius: BorderRadius.circular(kCardRadius),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.emoji_events,
+                size: kIconSizeMedium,
+                color: kAccentColor,
+              ),
+              const SizedBox(width: kSmallSpace),
+              Text(
+                'Badges',
+                style: kTitleMedium.copyWith(
+                  fontSize: kFontSizeLarge,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: kMediumSpace),
+          ...badges.map((badge) {
+            return _buildBadgeItem(
+              icon: badge['icon'],
+              name: badge['name'],
+              description: badge['description'],
+              unlocked: badge['unlocked'],
+            );
+          }).toList(),
+        ],
+      ),
+    );
+  }
+
   Widget _buildBadgeItem({
-    required String icon,
+    required IconData icon,
     required String name,
     required String description,
     required bool unlocked,
@@ -499,21 +501,19 @@ class _ProfilScreenState extends State<ProfilScreen> {
       decoration: BoxDecoration(
         color: unlocked
             ? kPrimaryColor
-            : kPrimaryColor.withOpacity(0.3),
+            : kPrimaryColor.withOpacity(kOpacityVeryLow),
         borderRadius: BorderRadius.circular(kInputRadius),
         border: Border.all(
-          color: unlocked ? kAccentColor : kTextSecondary.withOpacity(0.3),
-          width: unlocked ? 2 : 1,
+          color: unlocked ? kAccentColor : kTextSecondary.withOpacity(kOpacityVeryLow),
+          width: unlocked ? kBorderWidth : kBorderWidthThin,
         ),
       ),
       child: Row(
         children: [
-          Text(
+          Icon(
             icon,
-            style: TextStyle(
-              fontSize: kFontSizeXXLarge,
-              color: unlocked ? null : kTextSecondary.withOpacity(0.5),
-            ),
+            size: kIconSizeLarge,
+            color: unlocked ? kAccentColor : kTextSecondary.withOpacity(kOpacityLow),
           ),
           const SizedBox(width: kMediumSpace),
           Expanded(
@@ -549,35 +549,62 @@ class _ProfilScreenState extends State<ProfilScreen> {
     );
   }
 
-  // Calculer les stats depuis toutes les sessions de tous les groupes
-  Future<Map<String, int>> _calculateStats(String userId) async {
-    int totalSessions = 0;
-    int totalSeconds = 0;
+  // ========================================
+  // WIDGETS - DÉCONNEXION
+  // ========================================
+  
+  Widget _buildLogoutButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: kButtonHeight,
+      child: OutlinedButton.icon(
+        onPressed: () async {
+          final shouldLogout = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              backgroundColor: kSurfaceColor,
+              title: const Text('Se déconnecter ?', style: kTitleMedium),
+              content: Text(
+                'Voulez-vous vraiment vous déconnecter ?',
+                style: kBodyMedium.copyWith(color: kTextSecondary),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Annuler', style: TextStyle(color: kTextSecondary)),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('Déconnexion', style: TextStyle(color: kErrorColor)),
+                ),
+              ],
+            ),
+          );
 
-    // Récupérer tous les groupes dont l'utilisateur est membre
-    final groupesSnapshot = await _firestore
-        .collection('groupes')
-        .where('memberIds', arrayContains: userId)
-        .get();
-
-    // Pour chaque groupe, récupérer ses sessions
-    for (final groupeDoc in groupesSnapshot.docs) {
-      final sessionsSnapshot = await _firestore
-          .collection('groupes')
-          .doc(groupeDoc.id)
-          .collection('sessions')
-          .where('participantIds', arrayContains: userId) // ⭐ Seulement les sessions où l'user a participé
-          .where('isTermine', isEqualTo: true) // ⭐ Seulement les sessions terminées
-          .get();
-
-      totalSessions += sessionsSnapshot.docs.length;
-
-      for (final sessionDoc in sessionsSnapshot.docs) {
-        final sessionData = sessionDoc.data();
-        totalSeconds += (sessionData['dureeSecondes'] ?? 0) as int;
-      }
-    }
-
-    return {'sessions': totalSessions, 'seconds': totalSeconds};
+          if (shouldLogout == true && mounted) {
+            await _auth.signOut();
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              '/',
+              (route) => false,
+            );
+          }
+        },
+        icon: const Icon(Icons.logout, color: kErrorColor),
+        label: Text(
+          'Se déconnecter',
+          style: kButtonText.copyWith(
+            color: kErrorColor,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: kErrorColor, width: kBorderWidth),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(kInputRadius),
+          ),
+        ),
+      ),
+    );
   }
 }

@@ -280,12 +280,22 @@ class _GroupeListScreenState extends State<GroupeListScreen> {
                     style: kTitleLarge,
                   ),
                   const SizedBox(height: kSmallSpace),
-                  Text(
-                    "Étudiez ensemble, brillez ensemble ✨",
-                    style: kBodyMedium.copyWith(
-                      color: kTextSecondary,
-                      fontStyle: FontStyle.italic,
-                    ),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.auto_awesome,
+                        size: kIconSizeSmall,
+                        color: kAccentColor,
+                      ),
+                      const SizedBox(width: kPaddingHorizontalXS),
+                      Text(
+                        "Étudiez ensemble, brillez ensemble",
+                        style: kBodyMedium.copyWith(
+                          color: kTextSecondary,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -363,7 +373,7 @@ class _GroupeListScreenState extends State<GroupeListScreen> {
             margin: const EdgeInsets.only(bottom: kMediumSpace),
             padding: const EdgeInsets.all(kLargeSpace),
             decoration: BoxDecoration(
-              color: kSurfaceColor.withOpacity(0.8),
+              color: kSurfaceColor.withOpacity(kOpacityMediumHigh),
               borderRadius: BorderRadius.circular(kCardRadius),
             ),
             child: Column(
@@ -513,7 +523,7 @@ class _GroupeListScreenState extends State<GroupeListScreen> {
           children: [
             const Icon(
               Icons.groups,
-              size: kIconSizeXL * 2,
+              size: kIconSizeXXXL,
               color: kTextSecondary,
             ),
             const SizedBox(height: kLargeSpace),

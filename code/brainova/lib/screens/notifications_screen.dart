@@ -17,9 +17,17 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
+  // ========================================
+  // SERVICES FIREBASE
+  // ========================================
+  
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  // ========================================
+  // MÉTHODES - FORMATAGE
+  // ========================================
+  
   String _formatTime(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
@@ -39,14 +47,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  // ========================================
+  // MÉTHODES - CONFIGURATION NOTIFICATION
+  // ========================================
+  
   Color _getNotificationColor(String type) {
     switch (type) {
       case 'session_en_cours':
-        return const Color(0xFF4CAF50); // Vert
+        return kNotificationGreen;
       case 'nouvelle_session':
-        return const Color(0xFFFFD700); // Jaune
+        return kNotificationYellow;
       case 'membre_rejoint':
-        return const Color(0xFFDB7BDB); // Violet
+        return kNotificationPurple;
       default:
         return kAccentColor;
     }
@@ -65,9 +77,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  // ========================================
+  // BUILD - UI PRINCIPALE
+  // ========================================
+  
   @override
   Widget build(BuildContext context) {
     final userId = _auth.currentUser?.uid;
+    
+    // Debug auth
+    print('=== AUTH DEBUG ===');
+    print('Utilisateur connecté: ${_auth.currentUser?.email}');
+    print('UID actuel: $userId');
+    print('UID attendu: svEShIWd6eWArtf5t3M4szPBzgr2');
+    print('Match: ${userId == "svEShIWd6eWArtf5t3M4szPBzgr2"}');
 
     if (userId == null) {
       return const Scaffold(
@@ -87,101 +110,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.all(kScreenPadding),
-                child: Column(
-                  children: [
-                    // Icône + Titre
-                    Container(
-                      width: kIconSizeXL * 1.5,
-                      height: kIconSizeXL * 1.5,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFFD700), Color(0xFFDB7BDB)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.notifications,
-                        color: kBackgroundColor,
-                        size: kIconSizeLarge,
-                      ),
-                    ),
-                    const SizedBox(height: kMediumSpace),
-                    const Text(
-                      'Notifications',
-                      style: kTitleLarge,
-                    ),
-                    const SizedBox(height: kPaddingVerticalXS),
-                    Text(
-                      'Restez à jour avec vos groupes',
-                      style: kBodyMedium.copyWith(
-                        color: kTextSecondary,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // ========================================
+              // SECTION HEADER
+              // ========================================
+              
+              _buildHeader(),
 
-              // Liste des notifications
+              // ========================================
+              // SECTION LISTE NOTIFICATIONS
+              // ========================================
+              
               Expanded(
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: _firestore
-                      .collection('notifications')
-                      .where('userId', isEqualTo: userId)
-                      .orderBy('createdAt', descending: true)
-                      .limit(50)
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator(color: kAccentColor),
-                      );
-                    }
-
-                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return _buildEmptyState();
-                    }
-
-                    return ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: kScreenPadding),
-                      itemCount: snapshot.data!.docs.length,
-                      itemBuilder: (context, index) {
-                        final notifDoc = snapshot.data!.docs[index];
-                        final notifData = notifDoc.data() as Map<String, dynamic>;
-
-                        final type = notifData['type'] ?? '';
-                        final title = notifData['title'] ?? 'Notification';
-                        final message = notifData['message'] ?? '';
-                        final createdAt = notifData['createdAt'] != null
-                            ? (notifData['createdAt'] as Timestamp).toDate()
-                            : DateTime.now();
-                        final isRead = notifData['isRead'] ?? false;
-
-                        return _buildNotificationCard(
-                          type: type,
-                          title: title,
-                          message: message,
-                          time: _formatTime(createdAt),
-                          isRead: isRead,
-                          onTap: () async {
-                            // Marquer comme lue
-                            if (!isRead) {
-                              await _firestore
-                                  .collection('notifications')
-                                  .doc(notifDoc.id)
-                                  .update({'isRead': true});
-                            }
-                          },
-                        );
-                      },
-                    );
-                  },
-                ),
+                child: _buildNotificationsList(userId),
               ),
             ],
           ),
@@ -191,6 +131,149 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
+  // ========================================
+  // WIDGETS - HEADER
+  // ========================================
+  
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.all(kScreenPadding),
+      child: Column(
+        children: [
+          // Icône
+          Container(
+            width: kIconSizeXXL,
+            height: kIconSizeXXL,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [kGradientNotificationStart, kGradientNotificationEnd],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.notifications,
+              color: kBackgroundColor,
+              size: kIconSizeLarge,
+            ),
+          ),
+          const SizedBox(height: kMediumSpace),
+          
+          // Titre
+          const Text(
+            'Notifications',
+            style: kTitleLarge,
+          ),
+          const SizedBox(height: kPaddingVerticalXS),
+          
+          // Sous-titre
+          Text(
+            'Restez à jour avec vos groupes',
+            style: kBodyMedium.copyWith(
+              color: kTextSecondary,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ========================================
+  // WIDGETS - LISTE NOTIFICATIONS
+  // ========================================
+  
+  Widget _buildNotificationsList(String userId) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: _firestore
+          .collection('notifications')
+          .where('userId', isEqualTo: userId)
+          .orderBy('createdAt', descending: true)
+          .limit(kNotificationLimit)
+          .snapshots(),
+      builder: (context, snapshot) {
+        // Debug
+        print('=== NOTIFICATIONS DEBUG ===');
+        print('État: ${snapshot.connectionState}');
+        print('Erreur: ${snapshot.error}');
+        print('HasData: ${snapshot.hasData}');
+        print('Nombre de docs: ${snapshot.data?.docs.length ?? 0}');
+        print('userId recherché: $userId');
+        
+        // Gestion erreur
+        if (snapshot.hasError) {
+          print('ERREUR FIRESTORE: ${snapshot.error}');
+          return _buildErrorState(snapshot.error.toString());
+        }
+
+        // Gestion chargement
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: kAccentColor),
+          );
+        }
+
+        // Debug données
+        if (snapshot.hasData) {
+          print('Documents reçus:');
+          for (var doc in snapshot.data!.docs) {
+            final data = doc.data() as Map<String, dynamic>;
+            print('  - Doc ID: ${doc.id}');
+            print('    userId: ${data['userId']}');
+            print('    type: ${data['type']}');
+            print('    title: ${data['title']}');
+            print('    createdAt: ${data['createdAt']}');
+          }
+        }
+
+        // Gestion liste vide
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          print('Aucune donnée ou liste vide');
+          return _buildEmptyState();
+        }
+
+        // Affichage liste
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: kScreenPadding),
+          itemCount: snapshot.data!.docs.length,
+          itemBuilder: (context, index) {
+            final notifDoc = snapshot.data!.docs[index];
+            final notifData = notifDoc.data() as Map<String, dynamic>;
+
+            final type = notifData['type'] ?? '';
+            final title = notifData['title'] ?? 'Notification';
+            final message = notifData['message'] ?? '';
+            final createdAt = notifData['createdAt'] != null
+                ? (notifData['createdAt'] as Timestamp).toDate()
+                : DateTime.now();
+            final isRead = notifData['isRead'] ?? false;
+
+            return _buildNotificationCard(
+              type: type,
+              title: title,
+              message: message,
+              time: _formatTime(createdAt),
+              isRead: isRead,
+              onTap: () async {
+                if (!isRead) {
+                  await _firestore
+                      .collection('notifications')
+                      .doc(notifDoc.id)
+                      .update({'isRead': true});
+                }
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ========================================
+  // WIDGETS - CARTE NOTIFICATION
+  // ========================================
+  
   Widget _buildNotificationCard({
     required String type,
     required String title,
@@ -209,76 +292,156 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         padding: const EdgeInsets.all(kMediumSpace),
         decoration: BoxDecoration(
           color: isRead
-              ? kSurfaceColor.withOpacity(0.5)
-              : kSurfaceColor.withOpacity(0.9),
+              ? kSurfaceColor.withOpacity(kOpacityLow)
+              : kSurfaceColor.withOpacity(kOpacityHigh),
           borderRadius: BorderRadius.circular(kCardRadius),
           border: Border.all(
-            color: isRead ? Colors.transparent : color.withOpacity(0.3),
-            width: isRead ? 0 : 2,
+            color: isRead ? Colors.transparent : color.withOpacity(kOpacityVeryLow),
+            width: isRead ? 0 : kBorderWidth,
           ),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Indicateur de couleur + icône
-            Container(
-              width: kAvatarSizeMedium,
-              height: kAvatarSizeMedium,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
+            // Icône notification
+            _buildNotificationIcon(icon, color),
+            const SizedBox(width: kMediumSpace),
+            
+            // Contenu notification
+            Expanded(
+              child: _buildNotificationContent(
+                title: title,
+                message: message,
+                time: time,
+                isRead: isRead,
                 color: color,
-                size: kIconSizeMedium,
               ),
             ),
-            const SizedBox(width: kMediumSpace),
-            // Contenu
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNotificationIcon(IconData icon, Color color) {
+    return Container(
+      width: kAvatarSizeMedium,
+      height: kAvatarSizeMedium,
+      decoration: BoxDecoration(
+        color: color.withOpacity(kOpacityMinimal),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(
+        icon,
+        color: color,
+        size: kIconSizeMedium,
+      ),
+    );
+  }
+
+  Widget _buildNotificationContent({
+    required String title,
+    required String message,
+    required String time,
+    required bool isRead,
+    required Color color,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Titre + indicateur non lu
+        Row(
+          children: [
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: kTitleMedium.copyWith(
-                            fontSize: kFontSizeMedium,
-                            fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      if (!isRead)
-                        Container(
-                          width: kIndicatorSize,
-                          height: kIndicatorSize,
-                          decoration: BoxDecoration(
-                            color: color,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: kPaddingVerticalXS),
-                  Text(
-                    message,
-                    style: kBodyMedium.copyWith(
-                      fontSize: kFontSizeSmall,
-                      color: kTextSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: kPaddingVerticalXS),
-                  Text(
-                    time,
-                    style: kBodyMedium.copyWith(
-                      fontSize: kFontSizeXSmall,
-                      color: kTextSecondary.withOpacity(0.7),
-                    ),
-                  ),
-                ],
+              child: Text(
+                title,
+                style: kTitleMedium.copyWith(
+                  fontSize: kFontSizeMedium,
+                  fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
+                ),
+              ),
+            ),
+            if (!isRead)
+              Container(
+                width: kIndicatorSize,
+                height: kIndicatorSize,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: kPaddingVerticalXS),
+        
+        // Message
+        Text(
+          message,
+          style: kBodyMedium.copyWith(
+            fontSize: kFontSizeSmall,
+            color: kTextSecondary,
+          ),
+        ),
+        const SizedBox(height: kPaddingVerticalXS),
+        
+        // Heure
+        Text(
+          time,
+          style: kBodyMedium.copyWith(
+            fontSize: kFontSizeXSmall,
+            color: kTextSecondary.withOpacity(kOpacityMedium),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ========================================
+  // WIDGETS - ÉTATS SPÉCIAUX
+  // ========================================
+  
+  Widget _buildErrorState(String error) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(kScreenPadding),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.error_outline,
+              size: kIconSizeError,
+              color: kErrorColor,
+            ),
+            const SizedBox(height: kLargeSpace),
+            const Text(
+              'Erreur Firestore',
+              style: kTitleMedium,
+            ),
+            const SizedBox(height: kSmallSpace),
+            Container(
+              padding: const EdgeInsets.all(kMediumSpace),
+              decoration: BoxDecoration(
+                color: kSurfaceColor,
+                borderRadius: BorderRadius.circular(kCardRadius),
+              ),
+              child: SelectableText(
+                error,
+                style: kBodyMedium.copyWith(
+                  fontSize: kFontSizeSmall,
+                  color: kErrorColor,
+                ),
+              ),
+            ),
+            const SizedBox(height: kLargeSpace),
+            ElevatedButton.icon(
+              onPressed: () {
+                setState(() {}); // Force rebuild
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Réessayer'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: kAccentColor,
+                foregroundColor: kBackgroundColor,
               ),
             ),
           ],
@@ -295,10 +458,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: kIconSizeXL * 2,
-              height: kIconSizeXL * 2,
+              width: kIconSizeXXXL,
+              height: kIconSizeXXXL,
               decoration: BoxDecoration(
-                color: kSurfaceColor.withOpacity(0.5),
+                color: kSurfaceColor.withOpacity(kOpacityLow),
                 shape: BoxShape.circle,
               ),
               child: const Icon(

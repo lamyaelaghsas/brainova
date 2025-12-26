@@ -25,9 +25,17 @@ class SessionDetailScreen extends StatefulWidget {
 }
 
 class _SessionDetailScreenState extends State<SessionDetailScreen> {
+  // ========================================
+  // SERVICES FIREBASE
+  // ========================================
+  
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  // ========================================
+  // MÉTHODES - FORMATAGE
+  // ========================================
+  
   String _formatDate(DateTime date) {
     const months = [
       '', 'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
@@ -75,6 +83,10 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
     return 'Rejoint à $hour:$minute';
   }
 
+  // ========================================
+  // MÉTHODES - GESTION SESSION
+  // ========================================
+  
   Future<void> _rejoindreSession(Map<String, dynamic> sessionData) async {
     try {
       final userId = _auth.currentUser?.uid;
@@ -82,11 +94,11 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
         throw Exception('Utilisateur non connecté');
       }
 
-      // VÉRIFICATION 1 : La session est-elle terminée ?
+      // Vérification : La session est-elle terminée ?
       final isTermine = sessionData['isTermine'] ?? false;
 
       if (isTermine) {
-        //  Session terminée → NE PAS ajouter l'utilisateur
+        // Session terminée → Ne pas ajouter l'utilisateur
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -99,10 +111,9 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
         return; 
       }
 
-      // Session EN COURS → Ajouter l'utilisateur
+      // Session en cours → Ajouter l'utilisateur
       final participantIds = List<String>.from(sessionData['participantIds'] ?? []);
 
-      // Ajouter l'utilisateur s'il n'est pas déjà participant
       if (!participantIds.contains(userId)) {
         participantIds.add(userId);
         await _firestore
@@ -141,6 +152,10 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
     }
   }
 
+  // ========================================
+  // BUILD - UI PRINCIPALE
+  // ========================================
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -179,7 +194,6 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
               final sessionData = snapshot.data!.data() as Map<String, dynamic>;
               final sujet = sessionData['sujet'] ?? 'Session';
               final date = (sessionData['date'] as Timestamp).toDate();
-              // Lire dureeSecondes si disponible, sinon convertir dureeMinutes
               final dureeSecondes = sessionData['dureeSecondes'] ?? (sessionData['dureeMinutes'] ?? 0) * 60;
               final participantIds = List<String>.from(sessionData['participantIds'] ?? []);
               final isTermine = sessionData['isTermine'] ?? false;
@@ -187,21 +201,16 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
 
               return Column(
                 children: [
-                  // Header
-                  Padding(
-                    padding: const EdgeInsets.all(kScreenPadding),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          onPressed: () => Navigator.pop(context),
-                          icon: const Icon(Icons.arrow_back, color: kTextPrimary),
-                        ),
-                        const SizedBox(width: kPaddingHorizontalXS),
-                        const Text('Retour', style: kBodyMedium),
-                      ],
-                    ),
-                  ),
+                  // ========================================
+                  // SECTION HEADER
+                  // ========================================
+                  
+                  _buildHeader(),
 
+                  // ========================================
+                  // SECTION CONTENU
+                  // ========================================
+                  
                   Expanded(
                     child: SingleChildScrollView(
                       child: Padding(
@@ -209,257 +218,262 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Titre
-                            Row(
-                              children: [
-                                const Text('✨', style: TextStyle(fontSize: kFontSizeXLarge)),
-                                const SizedBox(width: kSmallSpace),
-                                const Text(
-                                  'Détails de la session',
-                                  style: kTitleLarge,
-                                ),
-                              ],
-                            ),
-
+                            _buildTitle(),
                             const SizedBox(height: kSmallSpace),
-
-                            // Nom du groupe
-                            Text(
-                              widget.groupeNom,
-                              style: kBodyMedium.copyWith(
-                                fontSize: kFontSizeMedium,
-                                color: kTextSecondary,
-                              ),
-                            ),
-
+                            _buildGroupeName(),
                             const SizedBox(height: kLargeSpace),
-
-                            // Card session
-                            Container(
-                              padding: const EdgeInsets.all(kLargeSpace),
-                              decoration: BoxDecoration(
-                                color: kSurfaceColor.withOpacity(0.8),
-                                borderRadius: BorderRadius.circular(kCardRadius),
-                                border: Border.all(
-                                  color: enCours ? kAccentColor : kPrimaryColor,
-                                  width: enCours ? kBorderWidth : 1,
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Sujet + Badge
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          sujet,
-                                          style: kTitleMedium.copyWith(
-                                            fontSize: kFontSizeLarge,
-                                          ),
-                                        ),
-                                      ),
-                                      if (enCours)
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: kMediumSpace,
-                                            vertical: kPaddingVerticalXS,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: kAccentColor.withOpacity(0.2),
-                                            borderRadius: BorderRadius.circular(kPaddingHorizontalXS),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Container(
-                                                width: kIndicatorSize,
-                                                height: kIndicatorSize,
-                                                decoration: const BoxDecoration(
-                                                  color: kAccentColor,
-                                                  shape: BoxShape.circle,
-                                                ),
-                                              ),
-                                              const SizedBox(width: kPaddingHorizontalXS),
-                                              Text(
-                                                'En cours',
-                                                style: kBodyMedium.copyWith(
-                                                  fontSize: kFontSizeSmall,
-                                                  color: kAccentColor,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      if (!enCours)
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: kMediumSpace,
-                                            vertical: kPaddingVerticalXS,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: kPrimaryColor.withOpacity(0.2),
-                                            borderRadius: BorderRadius.circular(kPaddingHorizontalXS),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const Icon(
-                                                Icons.check_circle,
-                                                size: kIconSizeSmall,
-                                                color: kPrimaryColor,
-                                              ),
-                                              const SizedBox(width: kPaddingHorizontalXS),
-                                              Text(
-                                                'Terminée',
-                                                style: kBodyMedium.copyWith(
-                                                  fontSize: kFontSizeSmall,
-                                                  color: kPrimaryColor,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-
-                                  const SizedBox(height: kMediumSpace),
-
-                                  // Date
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.calendar_today,
-                                        size: kIconSizeSmall,
-                                        color: kTextSecondary,
-                                      ),
-                                      const SizedBox(width: kPaddingHorizontalXS),
-                                      Text(
-                                        _formatDate(date),
-                                        style: kBodyMedium.copyWith(
-                                          fontSize: kFontSizeMedium,
-                                          color: kTextSecondary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-
-                                  const SizedBox(height: kSmallSpace),
-
-                                  // Durée
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.access_time,
-                                        size: kIconSizeSmall,
-                                        color: kTextSecondary,
-                                      ),
-                                      const SizedBox(width: kPaddingHorizontalXS),
-                                      Text(
-                                        _formatDuration(dureeSecondes),
-                                        style: kBodyMedium.copyWith(
-                                          fontSize: kFontSizeMedium,
-                                          color: kTextSecondary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-
-                                  const SizedBox(height: kSmallSpace),
-
-                                  // Participants count
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.people,
-                                        size: kIconSizeSmall,
-                                        color: kTextSecondary,
-                                      ),
-                                      const SizedBox(width: kPaddingHorizontalXS),
-                                      Text(
-                                        '${participantIds.length} participants',
-                                        style: kBodyMedium.copyWith(
-                                          fontSize: kFontSizeMedium,
-                                          color: kTextSecondary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
+                            _buildSessionCard(
+                              sujet: sujet,
+                              date: date,
+                              dureeSecondes: dureeSecondes,
+                              participantIds: participantIds,
+                              enCours: enCours,
                             ),
-
                             const SizedBox(height: kLargeSpace),
-
-                            // Section Participants
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.people,
-                                  color: kAccentPurple,
-                                  size: kIconSizeMedium,
-                                ),
-                                const SizedBox(width: kPaddingHorizontalXS),
-                                Text(
-                                  'Participants',
-                                  style: kTitleMedium.copyWith(fontSize: kFontSizeLarge),
-                                ),
-                              ],
-                            ),
-
+                            _buildParticipantsSection(),
                             const SizedBox(height: kMediumSpace),
-
-                            // Liste participants
-                            ...participantIds.map((userId) {
-                              return _buildParticipantCard(userId, date);
-                            }).toList(),
-
-                            const SizedBox(height: kLargeSpace + kPaddingVertical),
+                            _buildParticipantsList(participantIds, date),
+                            const SizedBox(height: kPaddingVerticalXL),
                           ],
                         ),
                       ),
                     ),
                   ),
 
-                  // Bouton rejoindre
-                  Padding(
-                    padding: const EdgeInsets.all(kScreenPadding),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: kButtonHeight,
-                      child: ElevatedButton.icon(
-                        onPressed: isTermine ? null : () => _rejoindreSession(sessionData),
-                        icon: Icon(
-                          isTermine ? Icons.check_circle : Icons.group_add,
-                          color: isTermine ? kTextSecondary : kBackgroundColor,
-                          size: kIconSizeMedium,
-                        ),
-                        label: Text(
-                          isTermine ? 'Session terminée' : 'Rejoindre la session',
-                          style: kButtonText.copyWith(
-                            fontSize: kFontSizeLarge,
-                            color: isTermine ? kTextSecondary : kBackgroundColor,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: isTermine ? kSurfaceColor : kAccentColor,
-                          disabledBackgroundColor: kSurfaceColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(kInputRadius),
-                          ),
-                          elevation: 0,
-                        ),
-                      ),
-                    ),
-                  ),
+                  // ========================================
+                  // SECTION BOUTON
+                  // ========================================
+                  
+                  _buildJoinButton(isTermine, sessionData),
                 ],
               );
             },
           ),
         ),
       ),
+    );
+  }
+
+  // ========================================
+  // WIDGETS - HEADER
+  // ========================================
+  
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.all(kScreenPadding),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.arrow_back, color: kTextPrimary),
+          ),
+          const SizedBox(width: kPaddingHorizontalXS),
+          const Text('Retour', style: kBodyMedium),
+        ],
+      ),
+    );
+  }
+
+  // ========================================
+  // WIDGETS - TITRE
+  // ========================================
+  
+  Widget _buildTitle() {
+    return Row(
+      children: [
+        const Icon(
+          Icons.auto_awesome,
+          size: kIconSizeLarge,
+          color: kAccentColor,
+        ),
+        const SizedBox(width: kSmallSpace),
+        const Text(
+          'Détails de la session',
+          style: kTitleLarge,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGroupeName() {
+    return Text(
+      widget.groupeNom,
+      style: kBodyMedium.copyWith(
+        fontSize: kFontSizeMedium,
+        color: kTextSecondary,
+      ),
+    );
+  }
+
+  // ========================================
+  // WIDGETS - CARTE SESSION
+  // ========================================
+  
+  Widget _buildSessionCard({
+    required String sujet,
+    required DateTime date,
+    required int dureeSecondes,
+    required List<String> participantIds,
+    required bool enCours,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(kLargeSpace),
+      decoration: BoxDecoration(
+        color: kSurfaceColor.withOpacity(kOpacityMediumHigh),
+        borderRadius: BorderRadius.circular(kCardRadius),
+        border: Border.all(
+          color: enCours ? kAccentColor : kPrimaryColor,
+          width: enCours ? kBorderWidth : kBorderWidthThin,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Sujet + Badge
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  sujet,
+                  style: kTitleMedium.copyWith(
+                    fontSize: kFontSizeLarge,
+                  ),
+                ),
+              ),
+              if (enCours) _buildBadgeEnCours(),
+              if (!enCours) _buildBadgeTerminee(),
+            ],
+          ),
+          const SizedBox(height: kMediumSpace),
+          
+          // Date
+          _buildInfoRow(Icons.calendar_today, _formatDate(date)),
+          const SizedBox(height: kSmallSpace),
+          
+          // Durée
+          _buildInfoRow(Icons.access_time, _formatDuration(dureeSecondes)),
+          const SizedBox(height: kSmallSpace),
+          
+          // Participants count
+          _buildInfoRow(Icons.people, '${participantIds.length} participants'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBadgeEnCours() {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: kMediumSpace,
+        vertical: kPaddingVerticalXS,
+      ),
+      decoration: BoxDecoration(
+        color: kAccentColor.withOpacity(kOpacityMinimal),
+        borderRadius: BorderRadius.circular(kPaddingHorizontalXS),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: kIndicatorSize,
+            height: kIndicatorSize,
+            decoration: const BoxDecoration(
+              color: kAccentColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: kPaddingHorizontalXS),
+          Text(
+            'En cours',
+            style: kBodyMedium.copyWith(
+              fontSize: kFontSizeSmall,
+              color: kAccentColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBadgeTerminee() {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: kMediumSpace,
+        vertical: kPaddingVerticalXS,
+      ),
+      decoration: BoxDecoration(
+        color: kPrimaryColor.withOpacity(kOpacityMinimal),
+        borderRadius: BorderRadius.circular(kPaddingHorizontalXS),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.check_circle,
+            size: kIconSizeSmall,
+            color: kPrimaryColor,
+          ),
+          const SizedBox(width: kPaddingHorizontalXS),
+          Text(
+            'Terminée',
+            style: kBodyMedium.copyWith(
+              fontSize: kFontSizeSmall,
+              color: kPrimaryColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: kIconSizeSmall,
+          color: kTextSecondary,
+        ),
+        const SizedBox(width: kPaddingHorizontalXS),
+        Text(
+          text,
+          style: kBodyMedium.copyWith(
+            fontSize: kFontSizeMedium,
+            color: kTextSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ========================================
+  // WIDGETS - PARTICIPANTS
+  // ========================================
+  
+  Widget _buildParticipantsSection() {
+    return Row(
+      children: [
+        const Icon(
+          Icons.people,
+          color: kAccentPurple,
+          size: kIconSizeMedium,
+        ),
+        const SizedBox(width: kPaddingHorizontalXS),
+        Text(
+          'Participants',
+          style: kTitleMedium.copyWith(fontSize: kFontSizeLarge),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildParticipantsList(List<String> participantIds, DateTime sessionDate) {
+    return Column(
+      children: participantIds.map((userId) {
+        return _buildParticipantCard(userId, sessionDate);
+      }).toList(),
     );
   }
 
@@ -480,11 +494,11 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
           margin: const EdgeInsets.only(bottom: kMediumSpace),
           padding: const EdgeInsets.all(kMediumSpace),
           decoration: BoxDecoration(
-            color: kSurfaceColor.withOpacity(0.6),
+            color: kSurfaceColor.withOpacity(kOpacityMediumLow),
             borderRadius: BorderRadius.circular(kInputRadius),
             border: Border.all(
               color: kPrimaryColor,
-              width: 1,
+              width: kBorderWidthThin,
             ),
           ),
           child: Row(
@@ -494,7 +508,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                 width: kAvatarSizeMedium,
                 height: kAvatarSizeMedium,
                 decoration: BoxDecoration(
-                  color: kAccentPurple.withOpacity(0.2),
+                  color: kAccentPurple.withOpacity(kOpacityMinimal),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -504,6 +518,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                 ),
               ),
               const SizedBox(width: kMediumSpace),
+              
               // Nom + heure
               Expanded(
                 child: Column(
@@ -528,6 +543,43 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
           ),
         );
       },
+    );
+  }
+
+  // ========================================
+  // WIDGETS - BOUTONS
+  // ========================================
+  
+  Widget _buildJoinButton(bool isTermine, Map<String, dynamic> sessionData) {
+    return Padding(
+      padding: const EdgeInsets.all(kScreenPadding),
+      child: SizedBox(
+        width: double.infinity,
+        height: kButtonHeight,
+        child: ElevatedButton.icon(
+          onPressed: isTermine ? null : () => _rejoindreSession(sessionData),
+          icon: Icon(
+            isTermine ? Icons.check_circle : Icons.group_add,
+            color: isTermine ? kTextSecondary : kBackgroundColor,
+            size: kIconSizeMedium,
+          ),
+          label: Text(
+            isTermine ? 'Session terminée' : 'Rejoindre la session',
+            style: kButtonText.copyWith(
+              fontSize: kFontSizeLarge,
+              color: isTermine ? kTextSecondary : kBackgroundColor,
+            ),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isTermine ? kSurfaceColor : kAccentColor,
+            disabledBackgroundColor: kSurfaceColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(kInputRadius),
+            ),
+            elevation: 0,
+          ),
+        ),
+      ),
     );
   }
 }

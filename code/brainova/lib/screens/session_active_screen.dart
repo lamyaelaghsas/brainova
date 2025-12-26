@@ -6,7 +6,7 @@ import 'package:brainova/styles/colors.dart';
 import 'package:brainova/styles/sizes.dart';
 import 'package:brainova/styles/spacings.dart';
 import 'package:brainova/styles/texts.dart';
-import 'package:brainova/services/notification_service.dart'; // ⭐ NOUVEAU
+import 'package:brainova/services/notification_service.dart';
 
 class SessionActiveScreen extends StatefulWidget {
   final String groupeId;
@@ -31,36 +31,29 @@ class SessionActiveScreen extends StatefulWidget {
 }
 
 class _SessionActiveScreenState extends State<SessionActiveScreen> with WidgetsBindingObserver {
+  // ========================================
+  // SERVICES & ÉTAT
+  // ========================================
+  
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-
+  
   Timer? _timer;
   int _secondsElapsed = 0;
   bool _isPaused = false;
   DateTime? _startTime;
 
+  // ========================================
+  // LIFECYCLE
+  // ========================================
+  
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _startTime = DateTime.now();
     _startTimer();
-    
-    // ⭐ NOTIFIER QUE LA SESSION EST EN COURS (chrono démarre)
     _notifySessionStart();
-  }
-
-  // ⭐ NOUVELLE FONCTION POUR NOTIFIER
-  Future<void> _notifySessionStart() async {
-    final userId = _auth.currentUser?.uid;
-    if (userId != null) {
-      await NotificationService.notifySessionEnCours(
-        groupeId: widget.groupeId,
-        sessionId: widget.sessionId,
-        sujet: widget.sujet,
-        userId: userId,
-      );
-    }
   }
 
   @override
@@ -79,6 +72,26 @@ class _SessionActiveScreenState extends State<SessionActiveScreen> with WidgetsB
     }
   }
 
+  // ========================================
+  // MÉTHODES - NOTIFICATIONS
+  // ========================================
+  
+  Future<void> _notifySessionStart() async {
+    final userId = _auth.currentUser?.uid;
+    if (userId != null) {
+      await NotificationService.notifySessionEnCours(
+        groupeId: widget.groupeId,
+        sessionId: widget.sessionId,
+        sujet: widget.sujet,
+        userId: userId,
+      );
+    }
+  }
+
+  // ========================================
+  // MÉTHODES - GESTION TIMER
+  // ========================================
+  
   void _startTimer() {
     _isPaused = false;
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -99,6 +112,10 @@ class _SessionActiveScreenState extends State<SessionActiveScreen> with WidgetsB
     _startTimer();
   }
 
+  // ========================================
+  // MÉTHODES - GESTION SESSION
+  // ========================================
+  
   Future<void> _terminerSession() async {
     _timer?.cancel();
 
@@ -142,6 +159,10 @@ class _SessionActiveScreenState extends State<SessionActiveScreen> with WidgetsB
     }
   }
 
+  // ========================================
+  // MÉTHODES - FORMATAGE
+  // ========================================
+  
   String _formatTime(int totalSeconds) {
     final minutes = totalSeconds ~/ 60;
     final seconds = totalSeconds % 60;
@@ -155,31 +176,15 @@ class _SessionActiveScreenState extends State<SessionActiveScreen> with WidgetsB
     return progress.clamp(0.0, 1.0);
   }
 
+  // ========================================
+  // BUILD - UI PRINCIPALE
+  // ========================================
+  
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        final shouldPop = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            backgroundColor: kSurfaceColor,
-            title: const Text('Quitter la session ?', style: kTitleMedium),
-            content: Text(
-              'La session continuera en arrière-plan. Vous pourrez y revenir.',
-              style: kBodyMedium.copyWith(color: kTextSecondary),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Annuler', style: TextStyle(color: kTextSecondary)),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text('Quitter', style: TextStyle(color: kAccentColor)),
-              ),
-            ],
-          ),
-        );
+        final shouldPop = await _showQuitDialog();
         return shouldPop ?? false;
       },
       child: Scaffold(
@@ -194,46 +199,16 @@ class _SessionActiveScreenState extends State<SessionActiveScreen> with WidgetsB
           child: SafeArea(
             child: Column(
               children: [
-                // Header
-                Padding(
-                  padding: const EdgeInsets.all(kScreenPadding),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        onPressed: () async {
-                          final shouldPop = await showDialog<bool>(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              backgroundColor: kSurfaceColor,
-                              title: const Text('Quitter la session ?', style: kTitleMedium),
-                              content: Text(
-                                'La session continuera en arrière-plan.',
-                                style: kBodyMedium.copyWith(color: kTextSecondary),
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context, false),
-                                  child: const Text('Annuler', style: TextStyle(color: kTextSecondary)),
-                                ),
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context, true),
-                                  child: const Text('Quitter', style: TextStyle(color: kAccentColor)),
-                                ),
-                              ],
-                            ),
-                          );
-                          if (shouldPop == true && mounted) {
-                            Navigator.pop(context);
-                          }
-                        },
-                        icon: const Icon(Icons.arrow_back, color: kTextPrimary),
-                      ),
-                      const SizedBox(width: kPaddingHorizontalXS),
-                      const Text('Retour', style: kBodyMedium),
-                    ],
-                  ),
-                ),
+                // ========================================
+                // SECTION HEADER
+                // ========================================
+                
+                _buildHeader(),
 
+                // ========================================
+                // SECTION CONTENU
+                // ========================================
+                
                 Expanded(
                   child: SingleChildScrollView(
                     child: Padding(
@@ -241,225 +216,15 @@ class _SessionActiveScreenState extends State<SessionActiveScreen> with WidgetsB
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Titre
-                          Row(
-                            children: [
-                              const Text('✨', style: TextStyle(fontSize: kFontSizeXLarge)),
-                              const SizedBox(width: kSmallSpace),
-                              const Text('Nouvelle Session', style: kTitleLarge),
-                            ],
-                          ),
-
+                          _buildTitle(),
                           const SizedBox(height: kSmallSpace),
-
-                          // Nom du groupe
-                          Text(
-                            widget.groupeNom,
-                            style: kBodyMedium.copyWith(
-                              fontSize: kFontSizeMedium,
-                              color: kTextSecondary,
-                            ),
-                          ),
-
+                          _buildGroupeName(),
                           const SizedBox(height: kLargeSpace),
-
-                          // Card Sujet
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(kMediumSpace),
-                            decoration: BoxDecoration(
-                              color: kSurfaceColor.withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(kInputRadius),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Sujet',
-                                  style: kBodyMedium.copyWith(
-                                    fontSize: kFontSizeSmall,
-                                    color: kTextSecondary,
-                                  ),
-                                ),
-                                const SizedBox(height: kPaddingVerticalXS),
-                                Text(
-                                  widget.sujet,
-                                  style: kTitleMedium.copyWith(fontSize: kFontSizeLarge),
-                                ),
-                              ],
-                            ),
-                          ),
-
+                          _buildSujetCard(),
                           const SizedBox(height: kLargeSpace),
-
-                          // Card Chronomètre
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(kLargeSpace),
-                            decoration: BoxDecoration(
-                              color: kSurfaceColor.withOpacity(0.8),
-                              borderRadius: BorderRadius.circular(kCardRadius),
-                              border: Border.all(
-                                color: kAccentColor.withOpacity(0.3),
-                                width: kBorderWidth,
-                              ),
-                            ),
-                            child: Column(
-                              children: [
-                                Text(
-                                  'Temps écoulé',
-                                  style: kBodyMedium.copyWith(
-                                    fontSize: kFontSizeMedium,
-                                    color: kTextSecondary,
-                                  ),
-                                ),
-                                const SizedBox(height: kMediumSpace),
-                                
-                                // Chronomètre
-                                Text(
-                                  _formatTime(_secondsElapsed),
-                                  style: kTitleLarge.copyWith(
-                                    fontSize: kIconSizeXL * 2,
-                                    color: kAccentColor,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 4,
-                                  ),
-                                ),
-
-                                const SizedBox(height: kSmallSpace),
-
-                                // Durée prévue
-                                Text(
-                                  'sur ${widget.dureePrevueMinutes} min prévues',
-                                  style: kBodyMedium.copyWith(
-                                    fontSize: kFontSizeSmall,
-                                    color: kTextSecondary,
-                                  ),
-                                ),
-
-                                const SizedBox(height: kLargeSpace),
-
-                                // Barre de progression
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(kPaddingHorizontalXS),
-                                  child: LinearProgressIndicator(
-                                    value: _getProgress(),
-                                    minHeight: kPaddingVerticalXS,
-                                    backgroundColor: kPrimaryColor,
-                                    valueColor: const AlwaysStoppedAnimation<Color>(kAccentColor),
-                                  ),
-                                ),
-
-                                const SizedBox(height: kLargeSpace),
-
-                                // Boutons Pause/Reprendre et Terminer
-                                Row(
-                                  children: [
-                                    // Bouton Pause/Reprendre
-                                    Expanded(
-                                      child: SizedBox(
-                                        height: kButtonHeight,
-                                        child: OutlinedButton.icon(
-                                          onPressed: _isPaused ? _resumeTimer : _pauseTimer,
-                                          icon: Icon(
-                                            _isPaused ? Icons.play_arrow : Icons.pause,
-                                            color: _isPaused ? kAccentColor : kAccentPurple,
-                                          ),
-                                          label: Text(
-                                            _isPaused ? 'Reprendre' : 'Pause',
-                                            style: kButtonText.copyWith(
-                                              color: _isPaused ? kAccentColor : kAccentPurple,
-                                            ),
-                                          ),
-                                          style: OutlinedButton.styleFrom(
-                                            side: BorderSide(
-                                              color: _isPaused ? kAccentColor : kAccentPurple,
-                                              width: kBorderWidth,
-                                            ),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(kInputRadius),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: kMediumSpace),
-                                    // Bouton Terminer
-                                    Expanded(
-                                      child: SizedBox(
-                                        height: kButtonHeight,
-                                        child: ElevatedButton.icon(
-                                          onPressed: () async {
-                                            final shouldTerminate = await showDialog<bool>(
-                                              context: context,
-                                              builder: (context) => AlertDialog(
-                                                backgroundColor: kSurfaceColor,
-                                                title: const Text('Terminer la session ?', style: kTitleMedium),
-                                                content: Text(
-                                                  'Temps écoulé: ${_formatTime(_secondsElapsed)}',
-                                                  style: kBodyMedium.copyWith(color: kTextSecondary),
-                                                ),
-                                                actions: [
-                                                  TextButton(
-                                                    onPressed: () => Navigator.pop(context, false),
-                                                    child: const Text('Annuler', style: TextStyle(color: kTextSecondary)),
-                                                  ),
-                                                  TextButton(
-                                                    onPressed: () => Navigator.pop(context, true),
-                                                    child: const Text('Terminer', style: TextStyle(color: kAccentPink)),
-                                                  ),
-                                                ],
-                                              ),
-                                            );
-                                            if (shouldTerminate == true) {
-                                              _terminerSession();
-                                            }
-                                          },
-                                          icon: const Icon(
-                                            Icons.check_circle,
-                                            color: kWhiteColor,
-                                          ),
-                                          label: const Text(
-                                            'Terminer',
-                                            style: TextStyle(color: kWhiteColor),
-                                          ),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: kAccentPink,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(kInputRadius),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-
+                          _buildTimerCard(),
                           const SizedBox(height: kLargeSpace),
-
-                          // Info
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.lightbulb_outline,
-                                color: kAccentColor,
-                                size: kIconSizeMedium,
-                              ),
-                              const SizedBox(width: kSmallSpace),
-                              Expanded(
-                                child: Text(
-                                  'Le chrono se met en pause si vous quittez la page',
-                                  style: kBodyMedium.copyWith(
-                                    fontSize: kFontSizeSmall,
-                                    color: kTextSecondary,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                          _buildInfo(),
                         ],
                       ),
                     ),
@@ -469,6 +234,298 @@ class _SessionActiveScreenState extends State<SessionActiveScreen> with WidgetsB
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  // ========================================
+  // WIDGETS - HEADER
+  // ========================================
+  
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.all(kScreenPadding),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: () async {
+              final shouldPop = await _showQuitDialog();
+              if (shouldPop == true && mounted) {
+                Navigator.pop(context);
+              }
+            },
+            icon: const Icon(Icons.arrow_back, color: kTextPrimary),
+          ),
+          const SizedBox(width: kPaddingHorizontalXS),
+          const Text('Retour', style: kBodyMedium),
+        ],
+      ),
+    );
+  }
+
+  // ========================================
+  // WIDGETS - TITRE & INFO
+  // ========================================
+  
+  Widget _buildTitle() {
+    return Row(
+      children: [
+        const Icon(
+          Icons.auto_awesome,
+          size: kIconSizeLarge,
+          color: kAccentColor,
+        ),
+        const SizedBox(width: kSmallSpace),
+        const Text('Nouvelle Session', style: kTitleLarge),
+      ],
+    );
+  }
+
+  Widget _buildGroupeName() {
+    return Text(
+      widget.groupeNom,
+      style: kBodyMedium.copyWith(
+        fontSize: kFontSizeMedium,
+        color: kTextSecondary,
+      ),
+    );
+  }
+
+  Widget _buildInfo() {
+    return Row(
+      children: [
+        const Icon(
+          Icons.lightbulb_outline,
+          color: kAccentColor,
+          size: kIconSizeMedium,
+        ),
+        const SizedBox(width: kSmallSpace),
+        Expanded(
+          child: Text(
+            'Le chrono se met en pause si vous quittez la page',
+            style: kBodyMedium.copyWith(
+              fontSize: kFontSizeSmall,
+              color: kTextSecondary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ========================================
+  // WIDGETS - CARTES
+  // ========================================
+  
+  Widget _buildSujetCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(kMediumSpace),
+      decoration: BoxDecoration(
+        color: kSurfaceColor.withOpacity(kOpacityLow),
+        borderRadius: BorderRadius.circular(kInputRadius),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Sujet',
+            style: kBodyMedium.copyWith(
+              fontSize: kFontSizeSmall,
+              color: kTextSecondary,
+            ),
+          ),
+          const SizedBox(height: kPaddingVerticalXS),
+          Text(
+            widget.sujet,
+            style: kTitleMedium.copyWith(fontSize: kFontSizeLarge),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimerCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(kLargeSpace),
+      decoration: BoxDecoration(
+        color: kSurfaceColor.withOpacity(kOpacityMediumHigh),
+        borderRadius: BorderRadius.circular(kCardRadius),
+        border: Border.all(
+          color: kAccentColor.withOpacity(kOpacityVeryLow),
+          width: kBorderWidth,
+        ),
+      ),
+      child: Column(
+        children: [
+          Text(
+            'Temps écoulé',
+            style: kBodyMedium.copyWith(
+              fontSize: kFontSizeMedium,
+              color: kTextSecondary,
+            ),
+          ),
+          const SizedBox(height: kMediumSpace),
+          
+          // Chronomètre
+          Text(
+            _formatTime(_secondsElapsed),
+            style: kTitleLarge.copyWith(
+              fontSize: kIconSizeXXXL,
+              color: kAccentColor,
+              fontWeight: FontWeight.bold,
+              letterSpacing: kLetterSpacingWide,
+            ),
+          ),
+          const SizedBox(height: kSmallSpace),
+
+          // Durée prévue
+          Text(
+            'sur ${widget.dureePrevueMinutes} min prévues',
+            style: kBodyMedium.copyWith(
+              fontSize: kFontSizeSmall,
+              color: kTextSecondary,
+            ),
+          ),
+          const SizedBox(height: kLargeSpace),
+
+          // Barre de progression
+          ClipRRect(
+            borderRadius: BorderRadius.circular(kPaddingHorizontalXS),
+            child: LinearProgressIndicator(
+              value: _getProgress(),
+              minHeight: kPaddingVerticalXS,
+              backgroundColor: kPrimaryColor,
+              valueColor: const AlwaysStoppedAnimation<Color>(kAccentColor),
+            ),
+          ),
+          const SizedBox(height: kLargeSpace),
+
+          // Boutons
+          _buildTimerButtons(),
+        ],
+      ),
+    );
+  }
+
+  // ========================================
+  // WIDGETS - BOUTONS TIMER
+  // ========================================
+  
+  Widget _buildTimerButtons() {
+    return Row(
+      children: [
+        // Bouton Pause/Reprendre
+        Expanded(
+          child: SizedBox(
+            height: kButtonHeight,
+            child: OutlinedButton.icon(
+              onPressed: _isPaused ? _resumeTimer : _pauseTimer,
+              icon: Icon(
+                _isPaused ? Icons.play_arrow : Icons.pause,
+                color: _isPaused ? kAccentColor : kAccentPurple,
+              ),
+              label: Text(
+                _isPaused ? 'Reprendre' : 'Pause',
+                style: kButtonText.copyWith(
+                  color: _isPaused ? kAccentColor : kAccentPurple,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(
+                  color: _isPaused ? kAccentColor : kAccentPurple,
+                  width: kBorderWidth,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(kInputRadius),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: kMediumSpace),
+        
+        // Bouton Terminer
+        Expanded(
+          child: SizedBox(
+            height: kButtonHeight,
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                final shouldTerminate = await _showTerminateDialog();
+                if (shouldTerminate == true) {
+                  _terminerSession();
+                }
+              },
+              icon: const Icon(
+                Icons.check_circle,
+                color: kWhiteColor,
+              ),
+              label: const Text(
+                'Terminer',
+                style: TextStyle(color: kWhiteColor),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: kAccentPink,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(kInputRadius),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ========================================
+  // WIDGETS - DIALOGUES
+  // ========================================
+  
+  Future<bool?> _showQuitDialog() {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: kSurfaceColor,
+        title: const Text('Quitter la session ?', style: kTitleMedium),
+        content: Text(
+          'La session continuera en arrière-plan. Vous pourrez y revenir.',
+          style: kBodyMedium.copyWith(color: kTextSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annuler', style: TextStyle(color: kTextSecondary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Quitter', style: TextStyle(color: kAccentColor)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<bool?> _showTerminateDialog() {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: kSurfaceColor,
+        title: const Text('Terminer la session ?', style: kTitleMedium),
+        content: Text(
+          'Temps écoulé: ${_formatTime(_secondsElapsed)}',
+          style: kBodyMedium.copyWith(color: kTextSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annuler', style: TextStyle(color: kTextSecondary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Terminer', style: TextStyle(color: kAccentPink)),
+          ),
+        ],
       ),
     );
   }
