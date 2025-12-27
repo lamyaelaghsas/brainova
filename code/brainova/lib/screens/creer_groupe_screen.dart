@@ -67,6 +67,34 @@ class _CreerGroupeScreenState extends State<CreerGroupeScreen> {
     );
   }
 
+  /// Génère un code unique en vérifiant dans Firestore
+  Future<String> _generateUniqueCode() async {
+    const maxAttempts = kMaxCodeGenerationAttempts; // Maximum de tentatives
+    
+    for (int attempt = 0; attempt < maxAttempts; attempt++) {
+      final code = _generateCode(); // Génère un code aléatoire
+      
+      // Vérifier si le code existe déjà dans Firestore
+      final existingGroup = await _firestore
+          .collection('groupes')
+          .where('code', isEqualTo: code)
+          .get();
+      
+      if (existingGroup.docs.isEmpty) {
+        // Code unique trouvé !
+        setState(() => _code = code);
+        return code;
+      }
+      
+      // Code existe déjà, réessayer...
+      print('Code $code existe déjà, tentative ${attempt + 1}/$maxAttempts');
+    }
+    
+    // Après 10 tentatives, échec (très rare avec 36^6 combinaisons)
+    throw Exception('Impossible de générer un code unique après $maxAttempts tentatives');
+  }
+
+
   Future<void> _creerGroupe() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -78,23 +106,14 @@ class _CreerGroupeScreenState extends State<CreerGroupeScreen> {
         throw Exception('Utilisateur non connecté');
       }
 
-      // Vérifier si le code existe déjà
-      final existingGroup = await _firestore
-          .collection('groupes')
-          .where('code', isEqualTo: _code)
-          .get();
+      // Générer un code unique (boucle automatique)
+      final uniqueCode = await _generateUniqueCode();
 
-      if (existingGroup.docs.isNotEmpty) {
-        // Régénérer un nouveau code
-        _regenerateCode();
-        throw Exception('Ce code existe déjà. Nouveau code généré.');
-      }
-
-      // Créer le groupe
+      // Créer le groupe avec le code garanti unique
       await _firestore.collection('groupes').add({
         'nom': _nomController.text.trim(),
-        'code': _code,
-        'couleur': kDefaultGroupColorHex, // Jaune par défaut
+        'code': uniqueCode,
+        'couleur': kDefaultGroupColorHex,
         'memberIds': [userId],
         'createdBy': userId,
         'createdAt': DateTime.now(),
@@ -148,7 +167,7 @@ class _CreerGroupeScreenState extends State<CreerGroupeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Header
+                    // Header RETOUR
                     Row(
                       children: [
                         IconButton(
@@ -156,7 +175,6 @@ class _CreerGroupeScreenState extends State<CreerGroupeScreen> {
                           icon: const Icon(Icons.arrow_back, color: kTextPrimary),
                         ),
                         const SizedBox(width: kPaddingHorizontalXS),
-                        const Text('Retour', style: kBodyMedium),
                       ],
                     ),
 

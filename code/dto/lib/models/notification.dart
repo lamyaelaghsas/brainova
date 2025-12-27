@@ -14,7 +14,7 @@ abstract class NotificationModel with _$NotificationModel {
     required String title,
     required String message,
     required String groupeId,
-    String? sessionId,  // Optionnel car pas toujours présent
+    String? sessionId,  
     required bool isRead,
     @FirestoreTimestampConverter() required DateTime createdAt,
   }) = _NotificationModel;
@@ -22,3 +22,6 @@ abstract class NotificationModel with _$NotificationModel {
   factory NotificationModel.fromJson(Map<String, dynamic> json) => 
       _$NotificationModelFromJson(json);
 }
+
+
+//FICHIER PAS UTILISÉ ACTUELLEMENT CAR MARCHE PAS DONC JE FAIS LES NOTIFS SANS DTO

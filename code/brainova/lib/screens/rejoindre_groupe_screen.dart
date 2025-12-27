@@ -133,7 +133,7 @@ class _RejoindreGroupeScreenState extends State<RejoindreGroupeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Header
+                    // Header RETOUR
                     Row(
                       children: [
                         IconButton(
@@ -141,7 +141,6 @@ class _RejoindreGroupeScreenState extends State<RejoindreGroupeScreen> {
                           icon: const Icon(Icons.arrow_back, color: kTextPrimary),
                         ),
                         const SizedBox(width: kPaddingHorizontalXS),
-                        const Text('Retour', style: kBodyMedium),
                       ],
                     ),
 

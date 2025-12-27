@@ -58,6 +58,8 @@ const int kGroupNameMinLength = 3;           // Longueur min du nom de groupe
 
 // UI durations
 const int kSnackBarCopyDurationSeconds = 2;  // Durée SnackBar après copie
+// === CODE GENERATION ===
+const int kMaxCodeGenerationAttempts = 10;  // Nombre max de tentatives pour générer un code unique
 
 // ==========================================
 // AJOUT POUR REJOINDRE GROUPE SCREEN :

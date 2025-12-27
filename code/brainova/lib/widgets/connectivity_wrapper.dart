@@ -65,17 +65,17 @@ class _ConnectivityWrapperState extends State<ConnectivityWrapper> {
                   color: Colors.transparent,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 12.0,
+                      horizontal: kMediumSpace,
+                      vertical: kSmallSpace,
                     ),
-                    margin: const EdgeInsets.all(16.0),
+                    margin: const EdgeInsets.all(kMediumSpace),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFF9800),
-                      borderRadius: BorderRadius.circular(12.0),
+                      color: kAccentPink,
+                      borderRadius: BorderRadius.circular(kInputRadius),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 8,
+                          color: Colors.black.withOpacity(kOpacityMinimal),
+                          blurRadius: kIndicatorSize,
                           offset: const Offset(0, 2),
                         ),
                       ],
@@ -85,15 +85,15 @@ class _ConnectivityWrapperState extends State<ConnectivityWrapper> {
                         Icon(
                           Icons.wifi_off,
                           color: Colors.white,
-                          size: 24,
+                          size: kIconSizeMedium,
                         ),
-                        SizedBox(width: 12),
+                        SizedBox(width: kSmallSpace),
                         Expanded(
                           child: Text(
                             'Vous êtes hors ligne',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 14,
+                              fontSize: kFontSizeSmall,
                               fontWeight: FontWeight.w600,
                             ),
                           ),

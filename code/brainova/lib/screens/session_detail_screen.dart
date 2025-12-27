@@ -192,7 +192,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
 
               return Column(
                 children: [
-                  // Header
+                  // Header RETOUR
                   Padding(
                     padding: const EdgeInsets.all(kScreenPadding),
                     child: Row(
@@ -202,7 +202,6 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                           icon: const Icon(Icons.arrow_back, color: kTextPrimary),
                         ),
                         const SizedBox(width: kPaddingHorizontalXS),
-                        const Text('Retour', style: kBodyMedium),
                       ],
                     ),
                   ),

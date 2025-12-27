@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:brainova/styles/colors.dart';
 import 'package:brainova/styles/sizes.dart';
+import 'package:brainova/styles/texts.dart';
+
 
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -17,8 +19,8 @@ class CustomBottomNavBar extends StatelessWidget {
         color: kSurfaceColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
+            color: Colors.black.withOpacity(kOpacityMinimal),
+            blurRadius: kShadowBlurRadius,
             offset: const Offset(0, -2),
           ),
         ],
@@ -30,8 +32,8 @@ class CustomBottomNavBar extends StatelessWidget {
         selectedItemColor: kAccentColor,
         unselectedItemColor: kTextSecondary,
         type: BottomNavigationBarType.fixed,
-        selectedFontSize: 12,
-        unselectedFontSize: 12,
+        selectedFontSize: kFontSizeXSmall,
+        unselectedFontSize: kFontSizeXSmall,
         onTap: (index) {
           switch (index) {
             case 0:

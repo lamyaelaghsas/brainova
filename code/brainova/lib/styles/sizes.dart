@@ -90,3 +90,7 @@ const double kOpacityMediumLow = 0.6;        // 60% opaque
 
 // Border widths
 const double kBorderWidthThin = 1.0;         // Bordure fine
+
+
+
+const double kShadowBlurRadius = 10.0;    // Rayon de flou ombre

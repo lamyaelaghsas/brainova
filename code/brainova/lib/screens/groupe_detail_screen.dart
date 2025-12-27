@@ -145,7 +145,7 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
   // ===========================
   // Widgets qui construisent l'UI
   // ===========================
-  Widget _buildHeader() {
+  Widget _buildHeader() { //RETOUR
     return Padding(
       padding: const EdgeInsets.all(kScreenPadding),
       child: Row(
@@ -155,10 +155,6 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
             icon: const Icon(Icons.arrow_back, color: kTextPrimary),
           ),
           const SizedBox(width: kPaddingHorizontalXS),
-          const Text(
-            'Retour',
-            style: kBodyMedium,
-          ),
         ],
       ),
     );
