@@ -6,6 +6,8 @@ import 'package:brainova/styles/sizes.dart';
 import 'package:brainova/styles/spacings.dart';
 import 'package:brainova/styles/texts.dart';
 import 'package:brainova/widgets/custom_bottom_nav_bar.dart';
+import 'package:brainova/styles/constants.dart';
+
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -26,13 +28,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     if (difference.inMinutes < 1) {
       return 'À l\'instant';
-    } else if (difference.inMinutes < 60) {
+    } else if (difference.inMinutes < kMinutesPerHour) {
       return 'Il y a ${difference.inMinutes} min';
-    } else if (difference.inHours < 24) {
+    } else if (difference.inHours < kHoursPerDay) {
       return 'Il y a ${difference.inHours}h';
-    } else if (difference.inDays == 1) {
+    } else if (difference.inDays == kOneDay) {
       return 'Hier';
-    } else if (difference.inDays < 7) {
+    } else if (difference.inDays < kDaysInWeek) {
       return 'Il y a ${difference.inDays} jours';
     } else {
       return '${date.day}/${date.month}/${date.year}';
@@ -42,11 +44,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Color _getNotificationColor(String type) {
     switch (type) {
       case 'session_en_cours':
-        return const Color(0xFF4CAF50); // Vert
+        return kGreen; // Vert
       case 'nouvelle_session':
-        return const Color(0xFFFFD700); // Jaune
+        return kYellow; // Jaune
       case 'membre_rejoint':
-        return const Color(0xFFDB7BDB); // Violet
+        return kPink; // rose
       default:
         return kAccentColor;
     }
@@ -101,11 +103,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   children: [
                     // Icône + Titre
                     Container(
-                      width: kIconSizeXL * 1.5,
-                      height: kIconSizeXL * 1.5,
+                      width: kIconSizeXL * kIconMultiplierUnEtDemi,
+                      height: kIconSizeXL * kIconMultiplierUnEtDemi,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFFFFD700), Color(0xFFDB7BDB)],
+                          colors: [kPink, kYellow],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -151,7 +153,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     print('Erreur: ${snapshot.error}');
                     print('HasData: ${snapshot.hasData}');
                     print('Nombre de docs: ${snapshot.data?.docs.length ?? 0}');
-                    print('👤 userId recherché: $userId');
+                    print('userId recherché: $userId');
                     
                     // SI ERREUR → AFFICHER À L'ÉCRAN
                     if (snapshot.hasError) {
@@ -164,7 +166,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             children: [
                               const Icon(
                                 Icons.error_outline,
-                                size: 80,
+                                size: kIconSizeError,
                                 color: kErrorColor,
                               ),
                               const SizedBox(height: kLargeSpace),
@@ -290,12 +292,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         padding: const EdgeInsets.all(kMediumSpace),
         decoration: BoxDecoration(
           color: isRead
-              ? kSurfaceColor.withOpacity(0.5)
-              : kSurfaceColor.withOpacity(0.9),
+              ? kSurfaceColor.withOpacity(kOpacityLow)
+              : kSurfaceColor.withOpacity(kOpacityHigh),
           borderRadius: BorderRadius.circular(kCardRadius),
           border: Border.all(
-            color: isRead ? Colors.transparent : color.withOpacity(0.3),
-            width: isRead ? 0 : 2,
+            color: isRead ? Colors.transparent : color.withOpacity(kOpacityVeryLow),
+            width: isRead ? 0 : kBorderWidth,
           ),
         ),
         child: Row(
@@ -306,7 +308,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               width: kAvatarSizeMedium,
               height: kAvatarSizeMedium,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
+                color: color.withOpacity(kOpacityMinimal),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -356,7 +358,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     time,
                     style: kBodyMedium.copyWith(
                       fontSize: kFontSizeXSmall,
-                      color: kTextSecondary.withOpacity(0.7),
+                      color: kTextSecondary.withOpacity(kOpacityMedium),
                     ),
                   ),
                 ],
@@ -376,10 +378,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: kIconSizeXL * 2,
-              height: kIconSizeXL * 2,
+              width: kIconSizeXL * kIconMultiplierDouble,
+              height: kIconSizeXL * kIconMultiplierDouble,
               decoration: BoxDecoration(
-                color: kSurfaceColor.withOpacity(0.5),
+                color: kSurfaceColor.withOpacity(kOpacityLow),
                 shape: BoxShape.circle,
               ),
               child: const Icon(

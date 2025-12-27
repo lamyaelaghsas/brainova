@@ -5,6 +5,8 @@ import 'package:brainova/styles/colors.dart';
 import 'package:brainova/styles/sizes.dart';
 import 'package:brainova/styles/spacings.dart';
 import 'package:brainova/styles/texts.dart';
+import 'package:brainova/styles/constants.dart';
+
 
 class SessionDetailScreen extends StatefulWidget {
   final String groupeId;
@@ -37,29 +39,29 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
     final day = date.day;
     final month = months[date.month];
     final year = date.year;
-    final hour = date.hour.toString().padLeft(2, '0');
-    final minute = date.minute.toString().padLeft(2, '0');
+    final hour = date.hour.toString().padLeft(kTimePadLength, kTimePadCharacter);
+    final minute = date.minute.toString().padLeft(kTimePadLength, kTimePadCharacter);
 
     return '$day $month $year à $hour:$minute';
   }
 
   String _formatDuration(int totalSeconds) {
-    final hours = totalSeconds ~/ 3600;
-    final minutes = (totalSeconds % 3600) ~/ 60;
-    final seconds = totalSeconds % 60;
+    final hours = totalSeconds ~/ kSecondsPerHour;
+    final minutes = (totalSeconds % kSecondsPerHour) ~/ kSecondsPerMinute;
+    final seconds = totalSeconds % kSecondsPerMinute;
 
-    if (hours > 0) {
-      if (minutes > 0 && seconds > 0) {
+    if (hours > kDefaultCount) {
+      if (minutes > kDefaultCount && seconds > kDefaultCount) {
         return '${hours}h ${minutes}min ${seconds}s';
-      } else if (minutes > 0) {
+      } else if (minutes > kDefaultCount) {
         return '${hours}h ${minutes}min';
-      } else if (seconds > 0) {
+      } else if (seconds > kDefaultCount) {
         return '${hours}h ${seconds}s';
       } else {
         return '${hours}h';
       }
-    } else if (minutes > 0) {
-      if (seconds > 0) {
+    } else if (minutes > kDefaultCount) {
+      if (seconds > kDefaultCount) {
         return '${minutes}min ${seconds}s';
       } else {
         return '${minutes}min';
@@ -70,8 +72,8 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
   }
 
   String _formatJoinTime(DateTime date) {
-    final hour = date.hour.toString().padLeft(2, '0');
-    final minute = date.minute.toString().padLeft(2, '0');
+    final hour = date.hour.toString().padLeft(kTimePadLength, kTimePadCharacter);
+    final minute = date.minute.toString().padLeft(kTimePadLength, kTimePadCharacter);
     return 'Rejoint à $hour:$minute';
   }
 
@@ -92,7 +94,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
             const SnackBar(
               content: Text('Cette session est déjà terminée. Consultez les résultats dans l\'historique.'),
               backgroundColor: kErrorColor,
-              duration: Duration(seconds: 3),
+              duration: Duration(seconds: kSnackBarDurationSeconds),
             ),
           );
         }
@@ -125,7 +127,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
             'sessionId': widget.sessionId,
             'groupeNom': widget.groupeNom,
             'sujet': sessionData['sujet'] ?? 'Session',
-            'dureePrevueMinutes': sessionData['dureePrevueMinutes'] ?? 60,
+            'dureePrevueMinutes': sessionData['dureePrevueMinutes'] ?? kSecondsPerMinute,
           },
         );
       }
@@ -141,6 +143,9 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
     }
   }
 
+  //================================================
+  // Widget build
+  //================================================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -180,7 +185,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
               final sujet = sessionData['sujet'] ?? 'Session';
               final date = (sessionData['date'] as Timestamp).toDate();
               // Lire dureeSecondes si disponible, sinon convertir dureeMinutes
-              final dureeSecondes = sessionData['dureeSecondes'] ?? (sessionData['dureeMinutes'] ?? 0) * 60;
+              final dureeSecondes = sessionData['dureeSecondes'] ?? (sessionData['dureeMinutes'] ?? kDefaultCount) * kSecondsPerMinute;
               final participantIds = List<String>.from(sessionData['participantIds'] ?? []);
               final isTermine = sessionData['isTermine'] ?? false;
               final enCours = !isTermine;
@@ -238,7 +243,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                             Container(
                               padding: const EdgeInsets.all(kLargeSpace),
                               decoration: BoxDecoration(
-                                color: kSurfaceColor.withOpacity(0.8),
+                                color: kSurfaceColor.withOpacity(kOpacityMediumHigh),
                                 borderRadius: BorderRadius.circular(kCardRadius),
                                 border: Border.all(
                                   color: enCours ? kAccentColor : kPrimaryColor,
@@ -266,7 +271,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                                             vertical: kPaddingVerticalXS,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: kAccentColor.withOpacity(0.2),
+                                            color: kAccentColor.withOpacity(kOpacityMinimal),
                                             borderRadius: BorderRadius.circular(kPaddingHorizontalXS),
                                           ),
                                           child: Row(
@@ -299,7 +304,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                                             vertical: kPaddingVerticalXS,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: kPrimaryColor.withOpacity(0.2),
+                                            color: kPrimaryColor.withOpacity(kOpacityMinimal),
                                             borderRadius: BorderRadius.circular(kPaddingHorizontalXS),
                                           ),
                                           child: Row(
@@ -449,7 +454,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(kInputRadius),
                           ),
-                          elevation: 0,
+                          elevation: kElevationNone,
                         ),
                       ),
                     ),
@@ -463,6 +468,9 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
     );
   }
 
+  //================================================
+  // Widget pour afficher une carte participant
+  //================================================
   Widget _buildParticipantCard(String userId, DateTime sessionDate) {
     return StreamBuilder<DocumentSnapshot>(
       stream: _firestore.collection('users').doc(userId).snapshots(),
@@ -480,7 +488,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
           margin: const EdgeInsets.only(bottom: kMediumSpace),
           padding: const EdgeInsets.all(kMediumSpace),
           decoration: BoxDecoration(
-            color: kSurfaceColor.withOpacity(0.6),
+            color: kSurfaceColor.withOpacity(kOpacityMediumLow),
             borderRadius: BorderRadius.circular(kInputRadius),
             border: Border.all(
               color: kPrimaryColor,
@@ -494,7 +502,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
                 width: kAvatarSizeMedium,
                 height: kAvatarSizeMedium,
                 decoration: BoxDecoration(
-                  color: kAccentPurple.withOpacity(0.2),
+                  color: kAccentPurple.withOpacity(kOpacityMinimal),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(

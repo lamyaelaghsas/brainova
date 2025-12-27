@@ -59,3 +59,34 @@ const double kOpacityMedium = 0.7;            // Moyennement visible
 const double kOpacityLow = 0.5;               // Peu visible
 const double kOpacityVeryLow = 0.3;           // Très peu visible
 const double kOpacityMinimal = 0.2;           // Minimal
+
+
+//AJOUT POUR WELCOME SCREEN :
+// Onboarding
+const int kOnboardingPageCount = 4;
+const int kOnboardingLastPageIndex = kOnboardingPageCount - 1;
+// Animations (durées en millisecondes)
+const int kAnimationDurationShort = 300;
+const int kAnimationDurationMedium = 400;
+
+
+//AJOUT POUR LOGIN SCREEN :
+// Form validation
+const int kPasswordMinLength = 6;              // Longueur minimum du mot de passe
+
+// Loading indicators
+const double kLoadingStrokeWidth = 2.0;        // Épaisseur du cercle de chargement
+
+// Spacing multipliers
+const double kSpacingMultiplierLarge = 2.5;    // Multiplicateur pour grand espacement
+
+// Opacités formulaires
+const double kFormFieldOpacity = 0.5;          // Opacité des champs de formulaire
+
+// AJOUT POUR GROUPEDETAIL SCREEN :
+// Opacités supplémentaires
+const double kOpacityMediumHigh = 0.8;       // 80% opaque
+const double kOpacityMediumLow = 0.6;        // 60% opaque
+
+// Border widths
+const double kBorderWidthThin = 1.0;         // Bordure fine

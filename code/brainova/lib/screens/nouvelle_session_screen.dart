@@ -6,6 +6,8 @@ import 'package:brainova/styles/sizes.dart';
 import 'package:brainova/styles/spacings.dart';
 import 'package:brainova/styles/texts.dart';
 import 'package:brainova/services/notification_service.dart'; 
+import 'package:brainova/styles/constants.dart';
+
 
 class NouvelleSessionScreen extends StatefulWidget {
   final String groupeId;
@@ -56,8 +58,8 @@ class _NouvelleSessionScreenState extends State<NouvelleSessionScreen> {
           .collection('sessions')
           .add({
         'sujet': _sujetController.text.trim(),
-        'dureeSecondes': 0,
-        'dureeMinutes': 0,
+        'dureeSecondes': kDefaultCount,
+        'dureeMinutes': kDefaultCount,
         'dureePrevueMinutes': int.parse(_dureeController.text),
         'date': DateTime.now(),
         'participantIds': [userId],
@@ -143,9 +145,10 @@ class _NouvelleSessionScreenState extends State<NouvelleSessionScreen> {
                     // Titre avec émoji
                     Row(
                       children: [
-                        const Text(
-                          '✨',
-                          style: TextStyle(fontSize: kFontSizeXXLarge),
+                        const Icon(
+                          Icons.auto_awesome,  
+                          size: kIconSizeLarge,
+                          color: kAccentColor,
                         ),
                         const SizedBox(width: kSmallSpace),
                         const Text(
@@ -172,7 +175,7 @@ class _NouvelleSessionScreenState extends State<NouvelleSessionScreen> {
                     Container(
                       padding: const EdgeInsets.all(kLargeSpace),
                       decoration: BoxDecoration(
-                        color: kSurfaceColor.withOpacity(0.5),
+                        color: kSurfaceColor.withOpacity(kOpacityLow),
                         borderRadius: BorderRadius.circular(kCardRadius),
                       ),
                       child: Column(
@@ -202,10 +205,10 @@ class _NouvelleSessionScreenState extends State<NouvelleSessionScreen> {
                             decoration: InputDecoration(
                               hintText: 'Ex: Mathématiques - Calcul intégral',
                               hintStyle: kBodyMedium.copyWith(
-                                color: kTextSecondary.withOpacity(0.5),
+                                color: kTextSecondary.withOpacity(kOpacityLow),
                               ),
                               filled: true,
-                              fillColor: kBackgroundColor.withOpacity(0.5),
+                              fillColor: kBackgroundColor.withOpacity(kOpacityLow),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(kInputRadius),
                                 borderSide: BorderSide.none,
@@ -250,10 +253,10 @@ class _NouvelleSessionScreenState extends State<NouvelleSessionScreen> {
                             decoration: InputDecoration(
                               hintText: 'Ex: 60',
                               hintStyle: kBodyMedium.copyWith(
-                                color: kTextSecondary.withOpacity(0.5),
+                                color: kTextSecondary.withOpacity(kOpacityLow),
                               ),
                               filled: true,
-                              fillColor: kBackgroundColor.withOpacity(0.5),
+                              fillColor: kBackgroundColor.withOpacity(kOpacityLow),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(kInputRadius),
                                 borderSide: BorderSide.none,
@@ -268,7 +271,7 @@ class _NouvelleSessionScreenState extends State<NouvelleSessionScreen> {
                                 return 'Entrez une durée';
                               }
                               final number = int.tryParse(value);
-                              if (number == null || number <= 0) {
+                              if (number == null || number <= kDefaultCount) {
                                 return 'Entrez un nombre valide';
                               }
                               return null;
@@ -288,7 +291,7 @@ class _NouvelleSessionScreenState extends State<NouvelleSessionScreen> {
                                       width: kIconSizeMedium,
                                       height: kIconSizeMedium,
                                       child: CircularProgressIndicator(
-                                        strokeWidth: 2,
+                                        strokeWidth: kLoadingStrokeWidth,
                                         color: kBackgroundColor,
                                       ),
                                     )
@@ -309,7 +312,7 @@ class _NouvelleSessionScreenState extends State<NouvelleSessionScreen> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(kInputRadius),
                                 ),
-                                elevation: 0,
+                                elevation: kElevationNone,
                               ),
                             ),
                           ),

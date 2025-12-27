@@ -17,7 +17,7 @@ mixin _$Groupe {
   @DocumentIdField()
   String get id;
   String get nom;
-  String get description;
+  String? get description; // ✅ Optionnel maintenant
   String get code;
   String get couleur;
   String get creatorId;
@@ -80,7 +80,7 @@ abstract mixin class $GroupeCopyWith<$Res> {
   $Res call(
       {@DocumentIdField() String id,
       String nom,
-      String description,
+      String? description,
       String code,
       String couleur,
       String creatorId,
@@ -102,7 +102,7 @@ class _$GroupeCopyWithImpl<$Res> implements $GroupeCopyWith<$Res> {
   $Res call({
     Object? id = null,
     Object? nom = null,
-    Object? description = null,
+    Object? description = freezed,
     Object? code = null,
     Object? couleur = null,
     Object? creatorId = null,
@@ -118,10 +118,10 @@ class _$GroupeCopyWithImpl<$Res> implements $GroupeCopyWith<$Res> {
           ? _self.nom
           : nom // ignore: cast_nullable_to_non_nullable
               as String,
-      description: null == description
+      description: freezed == description
           ? _self.description
           : description // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       code: null == code
           ? _self.code
           : code // ignore: cast_nullable_to_non_nullable
@@ -242,7 +242,7 @@ extension GroupePatterns on Groupe {
     TResult Function(
             @DocumentIdField() String id,
             String nom,
-            String description,
+            String? description,
             String code,
             String couleur,
             String creatorId,
@@ -279,7 +279,7 @@ extension GroupePatterns on Groupe {
     TResult Function(
             @DocumentIdField() String id,
             String nom,
-            String description,
+            String? description,
             String code,
             String couleur,
             String creatorId,
@@ -314,7 +314,7 @@ extension GroupePatterns on Groupe {
     TResult? Function(
             @DocumentIdField() String id,
             String nom,
-            String description,
+            String? description,
             String code,
             String couleur,
             String creatorId,
@@ -339,7 +339,7 @@ class _Groupe implements Groupe {
   const _Groupe(
       {@DocumentIdField() required this.id,
       required this.nom,
-      required this.description,
+      this.description,
       required this.code,
       required this.couleur,
       required this.creatorId,
@@ -354,7 +354,8 @@ class _Groupe implements Groupe {
   @override
   final String nom;
   @override
-  final String description;
+  final String? description;
+// ✅ Optionnel maintenant
   @override
   final String code;
   @override
@@ -435,7 +436,7 @@ abstract mixin class _$GroupeCopyWith<$Res> implements $GroupeCopyWith<$Res> {
   $Res call(
       {@DocumentIdField() String id,
       String nom,
-      String description,
+      String? description,
       String code,
       String couleur,
       String creatorId,
@@ -457,7 +458,7 @@ class __$GroupeCopyWithImpl<$Res> implements _$GroupeCopyWith<$Res> {
   $Res call({
     Object? id = null,
     Object? nom = null,
-    Object? description = null,
+    Object? description = freezed,
     Object? code = null,
     Object? couleur = null,
     Object? creatorId = null,
@@ -473,10 +474,10 @@ class __$GroupeCopyWithImpl<$Res> implements _$GroupeCopyWith<$Res> {
           ? _self.nom
           : nom // ignore: cast_nullable_to_non_nullable
               as String,
-      description: null == description
+      description: freezed == description
           ? _self.description
           : description // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       code: null == code
           ? _self.code
           : code // ignore: cast_nullable_to_non_nullable

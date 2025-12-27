@@ -22,3 +22,13 @@ const double kScreenPadding = 20.0;
 // Espacements spécifiques
 const double kSpacingXXLarge = 60.0;          // Espace très large onboarding
 const double kSpacingLargeExtra = 29.0;       // Espacement entre indicateurs et boutons
+
+// Elevations
+const double kElevationNone = 0.0;
+
+// Shadows
+const double kShadowSpreadNone = 0.0;
+
+// Spacer flex ratios
+const int kSpacerFlexSmall = 2;
+const int kSpacerFlexLarge = 3;

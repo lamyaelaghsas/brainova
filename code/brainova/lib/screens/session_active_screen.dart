@@ -6,7 +6,9 @@ import 'package:brainova/styles/colors.dart';
 import 'package:brainova/styles/sizes.dart';
 import 'package:brainova/styles/spacings.dart';
 import 'package:brainova/styles/texts.dart';
-import 'package:brainova/services/notification_service.dart'; //  NOUVEAU
+import 'package:brainova/services/notification_service.dart'; 
+import 'package:brainova/styles/constants.dart';
+
 
 class SessionActiveScreen extends StatefulWidget {
   final String groupeId;
@@ -115,7 +117,7 @@ class _SessionActiveScreenState extends State<SessionActiveScreen> with WidgetsB
           .doc(widget.sessionId)
           .update({
         'dureeSecondes': _secondsElapsed,
-        'dureeMinutes': _secondsElapsed ~/ 60,
+        'dureeMinutes': _secondsElapsed ~/ kSecondsPerMinute,
         'isTermine': true,
         'endTime': DateTime.now(),
       });
@@ -143,13 +145,13 @@ class _SessionActiveScreenState extends State<SessionActiveScreen> with WidgetsB
   }
 
   String _formatTime(int totalSeconds) {
-    final minutes = totalSeconds ~/ 60;
-    final seconds = totalSeconds % 60;
+    final minutes = totalSeconds ~/ kSecondsPerMinute;
+    final seconds = totalSeconds % kSecondsPerMinute;
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
   double _getProgress() {
-    final totalSecondsPrevu = widget.dureePrevueMinutes * 60;
+    final totalSecondsPrevu = widget.dureePrevueMinutes * kSecondsPerMinute;
     if (totalSecondsPrevu == 0) return 0;
     final progress = _secondsElapsed / totalSecondsPrevu;
     return progress.clamp(0.0, 1.0);
@@ -297,10 +299,10 @@ class _SessionActiveScreenState extends State<SessionActiveScreen> with WidgetsB
                             width: double.infinity,
                             padding: const EdgeInsets.all(kLargeSpace),
                             decoration: BoxDecoration(
-                              color: kSurfaceColor.withOpacity(0.8),
+                              color: kSurfaceColor.withOpacity(kOpacityMediumHigh),
                               borderRadius: BorderRadius.circular(kCardRadius),
                               border: Border.all(
-                                color: kAccentColor.withOpacity(0.3),
+                                color: kAccentColor.withOpacity(kOpacityVeryLow),
                                 width: kBorderWidth,
                               ),
                             ),
@@ -319,10 +321,10 @@ class _SessionActiveScreenState extends State<SessionActiveScreen> with WidgetsB
                                 Text(
                                   _formatTime(_secondsElapsed),
                                   style: kTitleLarge.copyWith(
-                                    fontSize: kIconSizeXL * 2,
+                                    fontSize: kIconSizeXL * kIconMultiplierDouble,
                                     color: kAccentColor,
                                     fontWeight: FontWeight.bold,
-                                    letterSpacing: 4,
+                                    letterSpacing: kLetterSpacingWide, //4
                                   ),
                                 ),
 

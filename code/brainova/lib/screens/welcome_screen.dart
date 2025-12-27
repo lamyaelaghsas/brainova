@@ -41,21 +41,25 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     );
   }
 
+
+  // ======================================================================
+  // Widget de la page d'accueil avec les écrans d'onboarding (1ere visite)
+  // ======================================================================
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
+    return Scaffold( 
+      body: Container( // Plein écran avec image de fond
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
+        decoration: const BoxDecoration( 
           image: DecorationImage(
             image: AssetImage('assets/images/back-accueil.png'),
-            fit: BoxFit.cover,
+            fit: BoxFit.cover, // Image de fond qui couvre tout l'écran
           ),
         ),
-        child: SafeArea(
+        child: SafeArea( 
           child: Column(
-            children: [
+            children: [ // Contenu principal en colonne
               Expanded(
                 child: PageView(
                   controller: _pageController,
@@ -64,7 +68,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       _currentPage = index;
                     });
                   },
-                  children: [
+                  // ========================================
+                  // Quatre pages d'onboarding 
+                  // ========================================
+                  children: [ 
                     _buildOnboardingPage(
                       icon: 'assets/icons/trophee.png',
                       glowColor: kAccentPink,
@@ -92,8 +99,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   ],
                 ),
               ),
+              // ========================================
+              // Indicateurs de page
+              // ========================================
               _buildPageIndicators(),
               const SizedBox(height: kSpacingLargeExtra),
+
+              // ========================================
+              // Boutons en bas 
+              // ========================================
               _buildBottomButtons(),
               const SizedBox(height: kPaddingVerticalL),
             ],
@@ -103,6 +117,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     );
   }
 
+// ========================================================
+// Widgets pour les pages d'onboarding  
+// ========================================================
   Widget _buildOnboardingPage({
     required String icon,
     required Color glowColor,
@@ -114,16 +131,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Spacer(flex: 2),
+          const Spacer(flex: kSpacerFlexSmall), // Pousse le contenu vers le centre (ratio 2:3)
+          
+          // Icône avec effet de glow (lueur colorée)
           Container(
             width: kOnboardingIconSize,
             height: kOnboardingIconSize,
             decoration: BoxDecoration(
               boxShadow: [
                 BoxShadow(
-                  color: glowColor.withOpacity(0.3),
-                  blurRadius: kGlowBlurRadius,
-                  spreadRadius: 0,
+                  color: glowColor.withOpacity(kOpacityVeryLow), // Lueur semi-transparente
+                  blurRadius: kGlowBlurRadius, // Intensité du flou
+                  spreadRadius: kShadowSpreadNone, // Pas d'expansion au-delà du flou
                 ),
               ],
             ),
@@ -135,39 +154,52 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               ),
             ),
           ),
+          
           const SizedBox(height: kSpacingXXLarge),
+          
+          // Titre coloré de la page
           Text(
             title,
             style: kTitleMedium.copyWith(
               color: glowColor,
-              letterSpacing: 0.5,
+              letterSpacing: kLetterSpacingNormal,
             ),
             textAlign: TextAlign.center,
           ),
+          
           const SizedBox(height: kPaddingVertical),
+          
+          // Sous-titre explicatif
           Text(
             subtitle,
             style: kBodyMedium.copyWith(
               color: kTextSecondary,
-              height: 1.5,
+              height: kLineHeightRelaxed, // Espacement entre les lignes
             ),
             textAlign: TextAlign.center,
           ),
-          const Spacer(flex: 3),
+          
+          const Spacer(flex: kSpacerFlexLarge), // Pousse le contenu vers le centre (ratio 2:3)
         ],
       ),
     );
   }
 
+  // ========================================================
+  // Construit les 4 indicateurs de page (points)
+  // ========================================================
   Widget _buildPageIndicators() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(4, (index) {
+      children: List.generate(kOnboardingPageCount, (index) {
+        // Pour chaque page, crée un indicateur
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: kPaddingVerticalXS),
+          // L'indicateur actif est plus large que les autres
           width: _currentPage == index ? kIndicatorWidth : kIndicatorSize,
           height: kIndicatorSize,
           decoration: BoxDecoration(
+            // L'indicateur actif est jaune, les autres gris
             color: _currentPage == index ? kAccentColor : kTextMuted,
             borderRadius: BorderRadius.circular(kPaddingVerticalXS),
           ),
@@ -176,12 +208,19 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     );
   }
 
+  // ========================================================
+  // Construit les boutons du bas selon la page actuelle
+  // ========================================================
   Widget _buildBottomButtons() {
-    if (_currentPage < 3) {
+    // Si on n'est PAS sur la dernière page (pages 0, 1, 2)
+    if (_currentPage < kOnboardingLastPageIndex) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: kPaddingHorizontalL),
         child: Column(
           children: [
+            // =================================================
+            // Bouton "Suivant" pour passer à la page suivante
+            // =================================================
             SizedBox(
               width: double.infinity,
               height: kButtonHeight,
@@ -193,7 +232,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(kBorderRadiusLarge),
                   ),
-                  elevation: 0,
+                  elevation: kElevationNone,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -211,6 +250,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               ),
             ),
             const SizedBox(height: kMediumSpace),
+            // Bouton "Passer" pour sauter directement à la fin
             TextButton(
               onPressed: _skipToEnd,
               child: Text(
@@ -222,15 +262,23 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         ),
       );
     } else {
+      // =======================================================
+      // Si on EST sur la dernière page (page 3)
+      // Affiche les boutons de connexion et d'inscription
+      // =======================================================
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: kPaddingHorizontalL),
         child: Column(
           children: [
+            // ========================================
+            // Bouton "Je me connecte"
+            // ========================================
             SizedBox(
               width: double.infinity,
               height: kButtonHeight,
               child: ElevatedButton(
                 onPressed: () {
+                  // Navigation vers l'écran de connexion
                   Navigator.pushNamed(context, '/login');
                 },
                 style: ElevatedButton.styleFrom(
@@ -239,7 +287,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(kBorderRadiusLarge),
                   ),
-                  elevation: 0,
+                  elevation: kElevationNone,
                 ),
                 child: Text(
                   'Je me connecte',
@@ -251,11 +299,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               ),
             ),
             const SizedBox(height: kMediumSpace),
+            // ===================================================
+            // Bouton "Créer mon compte" avec effet d'élévation
+            // ===================================================
             SizedBox(
               width: double.infinity,
               height: kButtonHeight,
               child: ElevatedButton(
                 onPressed: () {
+                  // Navigation vers l'écran d'inscription
                   Navigator.pushNamed(context, '/register');
                 },
                 style: ElevatedButton.styleFrom(
@@ -264,8 +316,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(kBorderRadiusLarge),
                   ),
-                  elevation: kButtonElevationHigh,
-                  shadowColor: kAccentPink.withOpacity(0.5),
+                  elevation: kButtonElevationHigh, // Ombre plus prononcée
+                  shadowColor: kAccentPink.withOpacity(kOpacityLow), // Ombre colorée
                 ),
                 child: Text(
                   'Créer mon compte',

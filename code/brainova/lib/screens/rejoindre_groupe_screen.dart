@@ -5,7 +5,9 @@ import 'package:brainova/styles/colors.dart';
 import 'package:brainova/styles/sizes.dart';
 import 'package:brainova/styles/spacings.dart';
 import 'package:brainova/styles/texts.dart';
-import 'package:brainova/services/notification_service.dart'; //  NOUVEAU
+import 'package:brainova/services/notification_service.dart'; 
+import 'package:brainova/styles/constants.dart';
+
 
 class RejoindreGroupeScreen extends StatefulWidget {
   const RejoindreGroupeScreen({super.key});
@@ -148,8 +150,8 @@ class _RejoindreGroupeScreenState extends State<RejoindreGroupeScreen> {
                     // Icône violette
                     Center(
                       child: Container(
-                        width: kIconSizeXL * 2,
-                        height: kIconSizeXL * 2,
+                        width: kIconSizeXL * kIconMultiplierDouble,
+                        height: kIconSizeXL * kIconMultiplierDouble,
                         decoration: const BoxDecoration(
                           color: kAccentPurple,
                           shape: BoxShape.circle,
@@ -206,21 +208,21 @@ class _RejoindreGroupeScreenState extends State<RejoindreGroupeScreen> {
                     const SizedBox(height: kSmallSpace),
                     TextFormField(
                       controller: _codeController,
-                      maxLength: 6,
+                      maxLength: kGroupCodeLength, // 6 caractères
                       textCapitalization: TextCapitalization.characters,
                       style: kTitleMedium.copyWith(
-                        letterSpacing: 4,
+                        letterSpacing: kLetterSpacingWide, //4
                         color: kAccentPurple,
                       ),
                       textAlign: TextAlign.center,
                       decoration: InputDecoration(
                         hintText: 'ABC123',
                         hintStyle: kTitleMedium.copyWith(
-                          color: kTextSecondary.withOpacity(0.3),
-                          letterSpacing: 4,
+                          color: kTextSecondary.withOpacity(kOpacityVeryLow),
+                          letterSpacing: kLetterSpacingWide,
                         ),
                         filled: true,
-                        fillColor: kSurfaceColor.withOpacity(0.5),
+                        fillColor: kSurfaceColor.withOpacity(kOpacityLow),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(kInputRadius),
                           borderSide: BorderSide.none,
@@ -239,7 +241,7 @@ class _RejoindreGroupeScreenState extends State<RejoindreGroupeScreen> {
                         if (value == null || value.isEmpty) {
                           return 'Entrez un code';
                         }
-                        if (value.length != 6) {
+                        if (value.length != kGroupCodeLength) {
                           return 'Le code doit contenir 6 caractères';
                         }
                         return null;
@@ -252,7 +254,7 @@ class _RejoindreGroupeScreenState extends State<RejoindreGroupeScreen> {
                     Container(
                       padding: const EdgeInsets.all(kLargeSpace),
                       decoration: BoxDecoration(
-                        color: kSurfaceColor.withOpacity(0.5),
+                        color: kSurfaceColor.withOpacity(kOpacityLow),
                         borderRadius: BorderRadius.circular(kInputRadius),
                       ),
                       child: Column(
@@ -274,17 +276,17 @@ class _RejoindreGroupeScreenState extends State<RejoindreGroupeScreen> {
                           ),
                           const SizedBox(height: kMediumSpace),
                           _buildStep(
-                            '📘',
+                            Icons.menu_book,
                             'Demandez le code du groupe à un membre',
                           ),
                           const SizedBox(height: kSmallSpace),
                           _buildStep(
-                            '🔑',
+                            Icons.key,
                             'Entrez le code de 6 caractères ci-dessus',
                           ),
                           const SizedBox(height: kSmallSpace),
                           _buildStep(
-                            '📚',
+                            Icons.auto_stories, 
                             'Commencez à étudier ensemble !',
                           ),
                         ],
@@ -298,8 +300,8 @@ class _RejoindreGroupeScreenState extends State<RejoindreGroupeScreen> {
                       padding: const EdgeInsets.all(kMediumSpace),
                       decoration: BoxDecoration(
                         border: Border.all(
-                          color: kAccentPurple.withOpacity(0.3),
-                          width: 1,
+                          color: kAccentPurple.withOpacity(kOpacityVeryLow),
+                          width: kBorderWidthThin,
                         ),
                         borderRadius: BorderRadius.circular(kInputRadius),
                       ),
@@ -307,7 +309,7 @@ class _RejoindreGroupeScreenState extends State<RejoindreGroupeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '🔑 Codes de test disponibles :',
+                            'Codes de test disponibles :',
                             style: kBodyMedium.copyWith(
                               fontSize: kFontSizeSmall,
                               color: kAccentPurple,
@@ -340,7 +342,7 @@ class _RejoindreGroupeScreenState extends State<RejoindreGroupeScreen> {
                                 width: kIconSizeMedium,
                                 height: kIconSizeMedium,
                                 child: CircularProgressIndicator(
-                                  strokeWidth: 2,
+                                  strokeWidth: kLoadingStrokeWidth,
                                   color: kWhiteColor,
                                 ),
                               )
@@ -361,7 +363,7 @@ class _RejoindreGroupeScreenState extends State<RejoindreGroupeScreen> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(kInputRadius),
                           ),
-                          elevation: 0,
+                          elevation: kElevationNone,
                         ),
                       ),
                     ),
@@ -388,23 +390,27 @@ class _RejoindreGroupeScreenState extends State<RejoindreGroupeScreen> {
     );
   }
 
-  Widget _buildStep(String emoji, String text) {
-    return Row(
-      children: [
-        Text(emoji, style: const TextStyle(fontSize: kFontSizeMedium)),
-        const SizedBox(width: kMediumSpace),
-        Expanded(
-          child: Text(
-            text,
-            style: kBodyMedium.copyWith(
-              fontSize: kFontSizeSmall,
-              color: kTextSecondary,
-            ),
+  Widget _buildStep(IconData icon, String text) {
+  return Row(
+    children: [
+      Icon(
+        icon,
+        size: kIconSizeMedium,
+        color: kAccentColor,
+      ),
+      const SizedBox(width: kMediumSpace),
+      Expanded(
+        child: Text(
+          text,
+          style: kBodyMedium.copyWith(
+            fontSize: kFontSizeSmall,
+            color: kTextSecondary,
           ),
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 
   Widget _buildCodeChip(String code) {
     return GestureDetector(
@@ -415,11 +421,11 @@ class _RejoindreGroupeScreenState extends State<RejoindreGroupeScreen> {
           vertical: kPaddingVerticalXS,
         ),
         decoration: BoxDecoration(
-          color: kAccentPurple.withOpacity(0.2),
+          color: kAccentPurple.withOpacity(kOpacityMinimal),
           borderRadius: BorderRadius.circular(kPaddingHorizontalXS),
           border: Border.all(
-            color: kAccentPurple.withOpacity(0.5),
-            width: 1,
+            color: kAccentPurple.withOpacity(kOpacityLow),
+            width: kBorderWidthThin,
           ),
         ),
         child: Text(
@@ -427,7 +433,7 @@ class _RejoindreGroupeScreenState extends State<RejoindreGroupeScreen> {
           style: kAccentText.copyWith(
             color: kAccentPurple,
             fontWeight: FontWeight.bold,
-            letterSpacing: 1,
+            letterSpacing: kLetterSpacingNarrow,
           ),
         ),
       ),

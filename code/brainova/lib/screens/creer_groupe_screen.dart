@@ -7,6 +7,8 @@ import 'package:brainova/styles/colors.dart';
 import 'package:brainova/styles/sizes.dart';
 import 'package:brainova/styles/spacings.dart';
 import 'package:brainova/styles/texts.dart';
+import 'package:brainova/styles/constants.dart';
+
 
 class CreerGroupeScreen extends StatefulWidget {
   const CreerGroupeScreen({super.key});
@@ -42,9 +44,9 @@ class _CreerGroupeScreenState extends State<CreerGroupeScreen> {
   }
 
   String _generateCode() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const chars = kGroupCodeCharacters; // Lettres majuscules et chiffres
     final random = Random();
-    _code = List.generate(6, (index) => chars[random.nextInt(chars.length)]).join();
+    _code = List.generate(kGroupCodeLength, (index) => chars[random.nextInt(chars.length)]).join();
     return _code;
   }
 
@@ -60,7 +62,7 @@ class _CreerGroupeScreenState extends State<CreerGroupeScreen> {
       const SnackBar(
         content: Text('Code copié !'),
         backgroundColor: kSuccessColor,
-        duration: Duration(seconds: 2),
+        duration: Duration(seconds: kSnackBarCopyDurationSeconds), //2sec
       ),
     );
   }
@@ -92,7 +94,7 @@ class _CreerGroupeScreenState extends State<CreerGroupeScreen> {
       await _firestore.collection('groupes').add({
         'nom': _nomController.text.trim(),
         'code': _code,
-        'couleur': '#FFD700', // Jaune par défaut
+        'couleur': kDefaultGroupColorHex, // Jaune par défaut
         'memberIds': [userId],
         'createdBy': userId,
         'createdAt': DateTime.now(),
@@ -123,6 +125,9 @@ class _CreerGroupeScreenState extends State<CreerGroupeScreen> {
     }
   }
 
+  //================================================
+  // Widget build
+  //================================================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -160,8 +165,8 @@ class _CreerGroupeScreenState extends State<CreerGroupeScreen> {
                     // Icône jaune
                     Center(
                       child: Container(
-                        width: kIconSizeXL * 2,
-                        height: kIconSizeXL * 2,
+                        width: kIconSizeXL * kIconMultiplierDouble,
+                        height: kIconSizeXL * kIconMultiplierDouble,
                         decoration: const BoxDecoration(
                           color: kAccentColor,
                           shape: BoxShape.circle,
@@ -208,15 +213,15 @@ class _CreerGroupeScreenState extends State<CreerGroupeScreen> {
                     const SizedBox(height: kSmallSpace),
                     TextFormField(
                       controller: _nomController,
-                      maxLength: 30,
+                      maxLength: kGroupNameMaxLength,
                       style: kBodyMedium,
                       decoration: InputDecoration(
                         hintText: 'Ex: Groupe Flutter BAC 3',
                         hintStyle: kBodyMedium.copyWith(
-                          color: kTextSecondary.withOpacity(0.5),
+                          color: kTextSecondary.withOpacity(kOpacityLow),
                         ),
                         filled: true,
-                        fillColor: kSurfaceColor.withOpacity(0.5),
+                        fillColor: kSurfaceColor.withOpacity(kOpacityLow),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(kInputRadius),
                           borderSide: BorderSide.none,
@@ -235,7 +240,7 @@ class _CreerGroupeScreenState extends State<CreerGroupeScreen> {
                         if (value == null || value.isEmpty) {
                           return 'Entrez un nom de groupe';
                         }
-                        if (value.length < 3) {
+                        if (value.length < kGroupNameMinLength ) { //3 caractères
                           return 'Le nom doit contenir au moins 3 caractères';
                         }
                         return null;
@@ -254,7 +259,7 @@ class _CreerGroupeScreenState extends State<CreerGroupeScreen> {
                       padding: const EdgeInsets.all(kLargeSpace),
                       decoration: BoxDecoration(
                         border: Border.all(
-                          color: kAccentColor.withOpacity(0.3),
+                          color: kAccentColor.withOpacity(kOpacityVeryLow),
                           width: kBorderWidth,
                         ),
                         borderRadius: BorderRadius.circular(kInputRadius),
@@ -273,7 +278,7 @@ class _CreerGroupeScreenState extends State<CreerGroupeScreen> {
                             _code,
                             style: kTitleLarge.copyWith(
                               color: kAccentColor,
-                              letterSpacing: 4,
+                              letterSpacing: kLetterSpacingWide ,
                             ),
                           ),
                           const SizedBox(height: kMediumSpace),
@@ -340,7 +345,7 @@ class _CreerGroupeScreenState extends State<CreerGroupeScreen> {
                     Container(
                       padding: const EdgeInsets.all(kLargeSpace),
                       decoration: BoxDecoration(
-                        color: kSurfaceColor.withOpacity(0.5),
+                        color: kSurfaceColor.withOpacity(kOpacityLow),
                         borderRadius: BorderRadius.circular(kInputRadius),
                       ),
                       child: Column(
@@ -348,7 +353,11 @@ class _CreerGroupeScreenState extends State<CreerGroupeScreen> {
                         children: [
                           Row(
                             children: [
-                              const Text('✨', style: TextStyle(fontSize: kFontSizeLarge)),
+                               const Icon(
+                                Icons.auto_awesome,   
+                                size: kIconSizeMedium,
+                                color: kAccentColor,
+                              ),
                               const SizedBox(width: kSmallSpace),
                               Text(
                                 'Ce qui vous attend',
@@ -358,17 +367,17 @@ class _CreerGroupeScreenState extends State<CreerGroupeScreen> {
                           ),
                           const SizedBox(height: kMediumSpace),
                           _buildFeatureItem(
-                            '📚',
+                            Icons.auto_stories,  
                             'Suivez vos sessions d\'étude en groupe',
                           ),
                           const SizedBox(height: kSmallSpace),
                           _buildFeatureItem(
-                            '🏆',
+                            Icons.emoji_events,  
                             'Comparez vos performances avec les autres',
                           ),
                           const SizedBox(height: kSmallSpace),
                           _buildFeatureItem(
-                            '🔥',
+                            Icons.whatshot,  
                             'Motivez-vous mutuellement à étudier',
                           ),
                         ],
@@ -388,7 +397,7 @@ class _CreerGroupeScreenState extends State<CreerGroupeScreen> {
                                 width: kIconSizeMedium,
                                 height: kIconSizeMedium,
                                 child: CircularProgressIndicator(
-                                  strokeWidth: 2,
+                                  strokeWidth: kLoadingStrokeWidth,
                                   color: kBackgroundColor,
                                 ),
                               )
@@ -409,7 +418,7 @@ class _CreerGroupeScreenState extends State<CreerGroupeScreen> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(kInputRadius),
                           ),
-                          elevation: 0,
+                          elevation: kElevationNone,
                         ),
                       ),
                     ),
@@ -436,10 +445,13 @@ class _CreerGroupeScreenState extends State<CreerGroupeScreen> {
     );
   }
 
-  Widget _buildFeatureItem(String emoji, String text) {
+  //================================================
+  // Widget pour afficher un élément de fonctionnalité
+  //================================================
+  Widget _buildFeatureItem(IconData icon, String text) {  // String emoji → IconData icon
     return Row(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: kFontSizeLarge)),
+        Icon(icon, size: kIconSizeMedium, color: kAccentColor),  // Remplace le Text(emoji)
         const SizedBox(width: kMediumSpace),
         Expanded(
           child: Text(

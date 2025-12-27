@@ -6,6 +6,7 @@ import 'package:brainova/styles/sizes.dart';
 import 'package:brainova/styles/spacings.dart';
 import 'package:brainova/styles/texts.dart';
 import 'package:brainova/widgets/custom_bottom_nav_bar.dart';
+import 'package:brainova/styles/constants.dart';
 
 class GroupeListScreen extends StatefulWidget {
   const GroupeListScreen({super.key});
@@ -16,6 +17,7 @@ class GroupeListScreen extends StatefulWidget {
   State<GroupeListScreen> createState() => _GroupeListScreenState();
 }
 
+// Écran affichant la liste des groupes de l'utilisateur
 class _GroupeListScreenState extends State<GroupeListScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -28,6 +30,7 @@ class _GroupeListScreenState extends State<GroupeListScreen> {
     _loadUserData();
   }
 
+  // Charge les données de l'utilisateur connecté
   Future<void> _loadUserData() async {
     final userId = _auth.currentUser?.uid;
     if (userId != null) {
@@ -43,31 +46,37 @@ class _GroupeListScreenState extends State<GroupeListScreen> {
     }
   }
 
+  // Convertit le code couleur hexadécimal en Color
   Color _getGroupColor(String couleur) {
     final hexColor = couleur.replaceAll('#', '');
-    return Color(int.parse('FF$hexColor', radix: 16));
+    return Color(int.parse('FF$hexColor', radix: kHexadecimalRadix));
   }
 
+  // Formate la durée totale en heures
   String _formatDuration(int minutes) {
-    final hours = minutes ~/ 60;
+    final hours = minutes ~/ kMinutesPerHour;
     return '${hours}h';
   }
 
+  // Formate la date de la dernière session
   String _formatLastSession(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
 
-     if (difference.inDays == 0) {
-      return 'Aujourd\'hui, ${date.hour}h${date.minute.toString().padLeft(2, '0')}';
-    } else if (difference.inDays == 1) {
-      return 'Hier, ${date.hour}h${date.minute.toString().padLeft(2, '0')}';
-    } else if (difference.inDays < 7) {
-      return 'Il y a ${difference.inDays} jours, ${date.hour}h${date.minute.toString().padLeft(2, '0')}';
+     if (difference.inDays == kDefaultCount) {
+      return 'Aujourd\'hui, ${date.hour}h${date.minute.toString().padLeft(kTimePadLength, kTimePadCharacter)}';
+    } else if (difference.inDays == kOneDayAgo) {
+      return 'Hier, ${date.hour}h${date.minute.toString().padLeft(kTimePadLength, kTimePadCharacter)}';
+    } else if (difference.inDays < kDaysInWeek) { // Moins d'une semaine (7 jours)
+      return 'Il y a ${difference.inDays} jours, ${date.hour}h${date.minute.toString().padLeft(kTimePadLength, kTimePadCharacter)}';
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }
   }
 
+  // ===========================
+  // Build Method 
+  // ===========================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,7 +114,7 @@ class _GroupeListScreenState extends State<GroupeListScreen> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(kInputRadius),
                             ),
-                            elevation: 0,
+                            elevation: kElevationNone,
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -157,10 +166,13 @@ class _GroupeListScreenState extends State<GroupeListScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: const CustomBottomNavBar(currentIndex: 1),
+      bottomNavigationBar: const CustomBottomNavBar(currentIndex: kNavIndexGroups),
     );
   }
 
+  // =============================================
+  // Header avec nom utilisateur et déconnexion
+  // =============================================
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.all(kScreenPadding),
@@ -180,7 +192,7 @@ class _GroupeListScreenState extends State<GroupeListScreen> {
                       .where('memberIds', arrayContains: _auth.currentUser?.uid)
                       .snapshots(),
                   builder: (context, snapshot) {
-                    final count = snapshot.hasData ? snapshot.data!.docs.length : 0;
+                    final count = snapshot.hasData ? snapshot.data!.docs.length : kDefaultCount;
                     return Text(
                       '$count groupes',
                       style: kBodyMedium.copyWith(color: kTextSecondary),
@@ -189,56 +201,15 @@ class _GroupeListScreenState extends State<GroupeListScreen> {
                 ),
               ],
             ),
-          ),
-          // Bouton de déconnexion
-          IconButton(
-            onPressed: () async {
-              // Confirmation avant déconnexion
-              final shouldLogout = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  backgroundColor: kSurfaceColor,
-                  title: const Text('Se déconnecter ?', style: kTitleMedium),
-                  content: Text(
-                    'Voulez-vous vraiment vous déconnecter ?',
-                    style: kBodyMedium.copyWith(color: kTextSecondary),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text('Annuler', style: TextStyle(color: kTextSecondary)),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: const Text('Déconnexion', style: TextStyle(color: kErrorColor)),
-                    ),
-                  ],
-                ),
-              );
-
-              if (shouldLogout == true) {
-                await _auth.signOut();
-                if (mounted) {
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    '/',
-                    (route) => false,
-                  );
-                }
-              }
-            },
-            icon: const Icon(
-              Icons.logout,
-              color: kErrorColor,
-              size: kIconSizeMedium,
-            ),
-            tooltip: 'Se déconnecter',
-          ),
+          ),          
         ],
       ),
     );
   }
 
+  // ===========================
+  // Liste des groupes
+  // ===========================
   Widget _buildGroupsList() {
     final userId = _auth.currentUser?.uid;
     
@@ -281,7 +252,7 @@ class _GroupeListScreenState extends State<GroupeListScreen> {
                   ),
                   const SizedBox(height: kSmallSpace),
                   Text(
-                    "Étudiez ensemble, brillez ensemble ✨",
+                    "Étudiez ensemble, brillez ensemble !",
                     style: kBodyMedium.copyWith(
                       color: kTextSecondary,
                       fontStyle: FontStyle.italic,
@@ -302,7 +273,7 @@ class _GroupeListScreenState extends State<GroupeListScreen> {
                     groupeId: groupeDoc.id,
                     nom: groupeData['nom'] ?? '',
                     code: groupeData['code'] ?? '',
-                    couleur: groupeData['couleur'] ?? '#FFD700',
+                    couleur: groupeData['couleur'] ?? kDefaultGroupColorHex,
                     memberIds: List<String>.from(groupeData['memberIds'] ?? []),
                   );
                 },
@@ -336,7 +307,7 @@ class _GroupeListScreenState extends State<GroupeListScreen> {
         if (sessionsSnapshot.hasData) {
           for (final sessionDoc in sessionsSnapshot.data!.docs) {
             final sessionData = sessionDoc.data() as Map<String, dynamic>;
-            totalMinutes += (sessionData['dureeMinutes'] ?? 0) as int;
+            totalMinutes += (sessionData['dureeMinutes'] ?? kDefaultCount) as int;
             
             final sessionDate = (sessionData['date'] as Timestamp).toDate();
             if (lastSessionDate == null || sessionDate.isAfter(lastSessionDate)) {
@@ -363,7 +334,7 @@ class _GroupeListScreenState extends State<GroupeListScreen> {
             margin: const EdgeInsets.only(bottom: kMediumSpace),
             padding: const EdgeInsets.all(kLargeSpace),
             decoration: BoxDecoration(
-              color: kSurfaceColor.withOpacity(0.8),
+              color: kSurfaceColor.withOpacity(kOpacityHigh),
               borderRadius: BorderRadius.circular(kCardRadius),
             ),
             child: Column(
@@ -513,7 +484,7 @@ class _GroupeListScreenState extends State<GroupeListScreen> {
           children: [
             const Icon(
               Icons.groups,
-              size: kIconSizeXL * 2,
+              size: kIconSizeXL * kIconMultiplierDouble,
               color: kTextSecondary,
             ),
             const SizedBox(height: kLargeSpace),

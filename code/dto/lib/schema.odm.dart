@@ -209,7 +209,7 @@ extension AppSchemaGroupeOrderByFieldSelectorExtension
       );
 
   /// Order by description
-  OrderByField<String> get description => OrderByField(
+  OrderByField<String?> get description => OrderByField(
         name: 'description',
         parent: this,
       );
@@ -266,12 +266,12 @@ extension AppSchemaGroupePatchBuilder on PatchBuilder<Groupe> {
         converter: const PrimitiveConverter(),
       );
 
-  /// Update description field `String`
+  /// Update description field `String?`
   @pragma('vm:prefer-inline')
-  PatchBuilder<String> get description => PatchBuilder(
+  PatchBuilder<String?> get description => PatchBuilder(
         name: 'description',
         parent: this,
-        converter: const PrimitiveConverter(),
+        converter: NullableConverter(const PrimitiveConverter()),
       );
 
   /// Update code field `String`

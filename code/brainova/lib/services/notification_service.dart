@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:dto/models/groupe.dart';
+import 'package:dto/models/user.dart' as dto;
 
 /// Service pour gérer les notifications dans l'app
 class NotificationService {
@@ -18,34 +20,48 @@ class NotificationService {
       final groupeDoc = await _firestore.collection('groupes').doc(groupeId).get();
       if (!groupeDoc.exists) return;
 
-      final groupeData = groupeDoc.data()!;
-      final groupeName = groupeData['nom'] ?? 'un groupe';
-      final memberIds = List<String>.from(groupeData['memberIds'] ?? []);
+      print('GroupeDoc data: ${groupeDoc.data()}');
+
+      // Utiliser le DTO
+      final groupe = Groupe.fromJson({
+        'id': groupeDoc.id,
+        ...groupeDoc.data()!,
+      });
 
       // Récupérer les infos du créateur
       final creatorDoc = await _firestore.collection('users').doc(creatorId).get();
-      final creatorData = creatorDoc.data();
-      final creatorName = creatorData != null
-          ? '${creatorData['prenom']} ${creatorData['nom']}'
+      
+      print('CreatorDoc data: ${creatorDoc.data()}');
+      
+      final creator = creatorDoc.exists 
+          ? dto.User.fromJson({
+              'id': creatorDoc.id,
+              ...creatorDoc.data()!,
+            })
+          : null;
+      
+      final creatorName = creator != null
+          ? '${creator.prenom} ${creator.nom}'
           : 'Un membre';
 
       // Créer une notification pour chaque membre (sauf le créateur)
-      for (final memberId in memberIds) {
-        if (memberId == creatorId) continue; // Pas de notif pour soi-même
+      for (final memberId in groupe.memberIds) {
+        if (memberId == creatorId) continue;
 
         await _firestore.collection('notifications').add({
           'userId': memberId,
           'type': 'nouvelle_session',
           'title': 'Nouvelle session "$sujet" créée',
-          'message': '$creatorName a créé une session dans $groupeName',
+          'message': '$creatorName a créé une session dans ${groupe.nom}',
           'groupeId': groupeId,
           'sessionId': sessionId,
           'createdAt': FieldValue.serverTimestamp(),
           'isRead': false,
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('Erreur lors de la création des notifications: $e');
+      print('StackTrace: $stackTrace');
     }
   }
 
@@ -57,38 +73,46 @@ class NotificationService {
     required String userId,
   }) async {
     try {
-      // Récupérer les infos du groupe
       final groupeDoc = await _firestore.collection('groupes').doc(groupeId).get();
       if (!groupeDoc.exists) return;
 
-      final groupeData = groupeDoc.data()!;
-      final groupeName = groupeData['nom'] ?? 'un groupe';
-      final memberIds = List<String>.from(groupeData['memberIds'] ?? []);
+      // Utiliser le DTO
+      final groupe = Groupe.fromJson({
+        'id': groupeDoc.id,
+        ...groupeDoc.data()!,
+      });
 
       // Récupérer les infos de l'utilisateur qui lance la session
       final userDoc = await _firestore.collection('users').doc(userId).get();
-      final userData = userDoc.data();
-      final userName = userData != null
-          ? '${userData['prenom']} ${userData['nom']}'
+      final user = userDoc.exists 
+          ? dto.User.fromJson({
+              'id': userDoc.id,
+              ...userDoc.data()!,
+            })
+          : null;
+      
+      final userName = user != null
+          ? '${user.prenom} ${user.nom}'
           : 'Un membre';
 
       // Créer une notification pour chaque membre (sauf celui qui lance)
-      for (final memberId in memberIds) {
-        if (memberId == userId) continue; // Pas de notif pour soi-même
+      for (final memberId in groupe.memberIds) {
+        if (memberId == userId) continue;
 
         await _firestore.collection('notifications').add({
           'userId': memberId,
           'type': 'session_en_cours',
           'title': 'Session "$sujet" en cours',
-          'message': '$userName a démarré une session dans $groupeName',
+          'message': '$userName a démarré une session dans ${groupe.nom}',
           'groupeId': groupeId,
           'sessionId': sessionId,
           'createdAt': FieldValue.serverTimestamp(),
           'isRead': false,
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('Erreur lors de la création des notifications: $e');
+      print('StackTrace: $stackTrace');
     }
   }
 
@@ -98,37 +122,45 @@ class NotificationService {
     required String newMemberId,
   }) async {
     try {
-      // Récupérer les infos du groupe
       final groupeDoc = await _firestore.collection('groupes').doc(groupeId).get();
       if (!groupeDoc.exists) return;
 
-      final groupeData = groupeDoc.data()!;
-      final groupeName = groupeData['nom'] ?? 'un groupe';
-      final memberIds = List<String>.from(groupeData['memberIds'] ?? []);
+      // Utiliser le DTO
+      final groupe = Groupe.fromJson({
+        'id': groupeDoc.id,
+        ...groupeDoc.data()!,
+      });
 
       // Récupérer les infos du nouveau membre
       final newMemberDoc = await _firestore.collection('users').doc(newMemberId).get();
-      final newMemberData = newMemberDoc.data();
-      final newMemberName = newMemberData != null
-          ? '${newMemberData['prenom']} ${newMemberData['nom']}'
+      final newMember = newMemberDoc.exists
+          ? dto.User.fromJson({
+              'id': newMemberDoc.id,
+              ...newMemberDoc.data()!,
+            })
+          : null;
+      
+      final newMemberName = newMember != null
+          ? '${newMember.prenom} ${newMember.nom}'
           : 'Un nouveau membre';
 
       // Créer une notification pour chaque membre (sauf le nouveau)
-      for (final memberId in memberIds) {
-        if (memberId == newMemberId) continue; // Pas de notif pour le nouveau membre
+      for (final memberId in groupe.memberIds) {
+        if (memberId == newMemberId) continue;
 
         await _firestore.collection('notifications').add({
           'userId': memberId,
           'type': 'membre_rejoint',
-          'title': '$newMemberName a rejoint $groupeName',
-          'message': 'Votre groupe compte maintenant ${memberIds.length} membres',
+          'title': '$newMemberName a rejoint ${groupe.nom}',
+          'message': 'Votre groupe compte maintenant ${groupe.memberIds.length} membres',
           'groupeId': groupeId,
           'createdAt': FieldValue.serverTimestamp(),
           'isRead': false,
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('Erreur lors de la création des notifications: $e');
+      print('StackTrace: $stackTrace');
     }
   }
 

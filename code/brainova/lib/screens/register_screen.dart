@@ -148,7 +148,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Container(
                       padding: const EdgeInsets.all(kLargeSpace),
                       decoration: BoxDecoration(
-                        color: kSurfaceColor.withOpacity(0.5),
+                        color: kSurfaceColor.withOpacity(kFormFieldOpacity),
                         borderRadius: BorderRadius.circular(kCardRadius),
                       ),
                       child: Column(
@@ -184,10 +184,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       decoration: InputDecoration(
                                         hintText: 'Jean',
                                         hintStyle: kBodyMedium.copyWith(
-                                          color: kTextSecondary.withOpacity(0.5),
+                                          color: kTextSecondary.withOpacity(kFormFieldOpacity),
                                         ),
                                         filled: true,
-                                        fillColor: kBackgroundColor.withOpacity(0.5),
+                                        fillColor: kBackgroundColor.withOpacity(kFormFieldOpacity),
                                         prefixIcon: const Icon(
                                           Icons.person_outline,
                                           color: kAccentPink,
@@ -232,10 +232,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       decoration: InputDecoration(
                                         hintText: 'Dupont',
                                         hintStyle: kBodyMedium.copyWith(
-                                          color: kTextSecondary.withOpacity(0.5),
+                                          color: kTextSecondary.withOpacity(kFormFieldOpacity),
                                         ),
                                         filled: true,
-                                        fillColor: kBackgroundColor.withOpacity(0.5),
+                                        fillColor: kBackgroundColor.withOpacity(kFormFieldOpacity),
                                         prefixIcon: const Icon(
                                           Icons.person,
                                           color: kAccentPink,
@@ -281,10 +281,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             decoration: InputDecoration(
                               hintText: 'jean.dupont@email.com',
                               hintStyle: kBodyMedium.copyWith(
-                                color: kTextSecondary.withOpacity(0.5),
+                                color: kTextSecondary.withOpacity(kFormFieldOpacity),
                               ),
                               filled: true,
-                              fillColor: kBackgroundColor.withOpacity(0.5),
+                              fillColor: kBackgroundColor.withOpacity(kFormFieldOpacity),
                               prefixIcon: const Icon(
                                 Icons.email_outlined,
                                 color: kAccentColor,
@@ -327,10 +327,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             decoration: InputDecoration(
                               hintText: '••••••••',
                               hintStyle: kBodyMedium.copyWith(
-                                color: kTextSecondary.withOpacity(0.5),
+                                color: kTextSecondary.withOpacity(kFormFieldOpacity),
                               ),
                               filled: true,
-                              fillColor: kBackgroundColor.withOpacity(0.5),
+                              fillColor: kBackgroundColor.withOpacity(kFormFieldOpacity),
                               prefixIcon: const Icon(
                                 Icons.lock_outline,
                                 color: kAccentPurple,
@@ -361,7 +361,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               if (value == null || value.isEmpty) {
                                 return 'Entrez un mot de passe';
                               }
-                              if (value.length < 6) {
+                              if (value.length < kPasswordMinLength) { // 6 caracteres minimum
                                 return 'Minimum 6 caractères';
                               }
                               return null;
@@ -386,10 +386,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             decoration: InputDecoration(
                               hintText: '••••••••',
                               hintStyle: kBodyMedium.copyWith(
-                                color: kTextSecondary.withOpacity(0.5),
+                                color: kTextSecondary.withOpacity(kFormFieldOpacity),
                               ),
                               filled: true,
-                              fillColor: kBackgroundColor.withOpacity(0.5),
+                              fillColor: kBackgroundColor.withOpacity(kFormFieldOpacity),
                               prefixIcon: const Icon(
                                 Icons.lock_outline,
                                 color: kAccentPurple,

@@ -48,3 +48,10 @@ const kGradientEnd = Color(0xFF1E2338);         // Fin gradient
 // Shadows
 const kShadowColor = Color(0x40000000);         // Ombre douce
 const kGlowShadow = Color(0x80FFD700);          // Ombre lumineuse dorée
+
+const kGreen = Color(0xFF4CAF50);  // Vert pour session active
+const kYellow = Color(0xFFFFD700);   // jaune pour nouvelle session
+const kPink = Color(0xFFDB7BDB);    // rose pour membre a rejoint
+
+// Profile stats colors
+const kProfileStatsVioletColor = Color(0xFF9B59B6);  // Violet pour stats temps d'étude

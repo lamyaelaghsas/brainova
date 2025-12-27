@@ -6,6 +6,8 @@ import 'package:brainova/styles/sizes.dart';
 import 'package:brainova/styles/spacings.dart';
 import 'package:brainova/styles/texts.dart';
 import 'package:brainova/widgets/custom_bottom_nav_bar.dart';
+import 'package:brainova/styles/constants.dart';
+
 
 class ProfilScreen extends StatefulWidget {
   const ProfilScreen({super.key});
@@ -21,9 +23,9 @@ class _ProfilScreenState extends State<ProfilScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   String _formatDuration(int totalSeconds) {
-    final hours = totalSeconds ~/ 3600;
-    final minutes = (totalSeconds % 3600) ~/ 60;
-    final seconds = totalSeconds % 60;
+    final hours = totalSeconds ~/ kSecondsPerHour;
+    final minutes = (totalSeconds % kSecondsPerHour) ~/ kSecondsPerMinute;
+    final seconds = totalSeconds % kSecondsPerMinute;
 
     return '${hours}h ${minutes}min ${seconds}sec';
   }
@@ -41,9 +43,9 @@ class _ProfilScreenState extends State<ProfilScreen> {
     final badges = <Map<String, dynamic>>[];
 
     // Badge Nova Brillante : 10+ sessions
-    if (nbSessions >= 10) {
+    if (nbSessions >= kBadgeNovaSessionsRequired) {
       badges.add({
-        'icon': '⭐',
+        'icon': Icons.star,
         'name': 'Nova Brillante',
         'description': '10 sessions terminées',
         'unlocked': true,
@@ -51,9 +53,9 @@ class _ProfilScreenState extends State<ProfilScreen> {
     }
 
     // Badge Studieux : 5+ sessions
-    if (nbSessions >= 5) {
+    if (nbSessions >= kBadgeStudieuxSessionsRequired) {
       badges.add({
-        'icon': '🏆',
+        'icon': Icons.emoji_events,
         'name': 'Studieux',
         'description': '5 sessions terminées',
         'unlocked': true,
@@ -61,9 +63,9 @@ class _ProfilScreenState extends State<ProfilScreen> {
     }
 
     // Badge Marathon : 2h+ d'étude total
-    if (totalSeconds >= 7200) {
+    if (totalSeconds >= kBadgeMarathonSecondsRequired) {
       badges.add({
-        'icon': '⏰',
+        'icon': Icons.access_time,
         'name': 'Marathon',
         'description': '2h+ d\'étude',
         'unlocked': true,
@@ -71,9 +73,9 @@ class _ProfilScreenState extends State<ProfilScreen> {
     }
 
     // Badge Social : 3+ groupes
-    if (nbGroupes >= 3) {
+    if (nbGroupes >= kBadgeSocialGroupesRequired) {
       badges.add({
-        'icon': '👥',
+        'icon': Icons.people,
         'name': 'Social',
         'description': 'Membre de 3+ groupes',
         'unlocked': true,
@@ -81,18 +83,18 @@ class _ProfilScreenState extends State<ProfilScreen> {
     }
 
     // Badges verrouillés (à débloquer)
-    if (nbSessions < 10) {
+    if (nbSessions < kBadgeNovaSessionsRequired) {
       badges.add({
-        'icon': '🔒',
+        'icon': Icons.lock,
         'name': 'Nova Brillante',
         'description': 'Terminez 10 sessions',
         'unlocked': false,
       });
     }
 
-    if (nbSessions < 5) {
+    if (nbSessions < kBadgeStudieuxSessionsRequired) {
       badges.add({
-        'icon': '🔒',
+        'icon': Icons.lock,
         'name': 'Studieux',
         'description': 'Terminez 5 sessions',
         'unlocked': false,
@@ -171,7 +173,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
                                     height: kAvatarSizeLarge,
                                     decoration: BoxDecoration(
                                       gradient: const LinearGradient(
-                                        colors: [Color(0xFFFFD700), Color(0xFFDB7BDB)],
+                                        colors: [kPink, kYellow],
                                         begin: Alignment.topLeft,
                                         end: Alignment.bottomRight,
                                       ),
@@ -236,7 +238,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
                                       icon: Icons.access_time,
                                       label: 'Temps\nd\'étude',
                                       value: _formatDuration(totalSeconds),
-                                      color: const Color(0xFF9B59B6),
+                                      color: kProfileStatsVioletColor,
                                     ),
                                   ),
                                   const SizedBox(width: kMediumSpace),
@@ -245,7 +247,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
                                       icon: Icons.star,
                                       label: 'Sessions',
                                       value: '$nbSessions',
-                                      color: const Color(0xFFFFD700),
+                                      color: kMainButtonColor,
                                     ),
                                   ),
                                   const SizedBox(width: kMediumSpace),
@@ -254,7 +256,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
                                       icon: Icons.people,
                                       label: 'Groupes',
                                       value: '$nbGroupes',
-                                      color: const Color(0xFFDB7BDB),
+                                      color: kPink,
                                     ),
                                   ),
                                 ],
@@ -267,7 +269,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
                                 width: double.infinity,
                                 padding: const EdgeInsets.all(kLargeSpace),
                                 decoration: BoxDecoration(
-                                  color: kSurfaceColor.withOpacity(0.8),
+                                  color: kSurfaceColor.withOpacity(kOpacityMedium),
                                   borderRadius: BorderRadius.circular(kCardRadius),
                                 ),
                                 child: Column(
@@ -307,17 +309,27 @@ class _ProfilScreenState extends State<ProfilScreen> {
                                 width: double.infinity,
                                 padding: const EdgeInsets.all(kLargeSpace),
                                 decoration: BoxDecoration(
-                                  color: kSurfaceColor.withOpacity(0.8),
+                                  color: kSurfaceColor.withOpacity(kOpacityMedium),
                                   borderRadius: BorderRadius.circular(kCardRadius),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      '🏆 Badges',
-                                      style: kTitleMedium.copyWith(
-                                        fontSize: kFontSizeLarge,
-                                      ),
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.emoji_events,  
+                                          size: kIconSizeMedium,
+                                          color: kAccentColor,
+                                        ),
+                                        const SizedBox(width: kSmallSpace),
+                                        Text(
+                                          'Badges',
+                                          style: kTitleMedium.copyWith(
+                                            fontSize: kFontSizeLarge,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                     const SizedBox(height: kMediumSpace),
                                     ...badges.map((badge) {
@@ -414,7 +426,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
     return Container(
       padding: const EdgeInsets.all(kMediumSpace),
       decoration: BoxDecoration(
-        color: kSurfaceColor.withOpacity(0.8),
+        color: kSurfaceColor.withOpacity(kOpacityMedium),
         borderRadius: BorderRadius.circular(kCardRadius),
       ),
       child: Column(
@@ -444,10 +456,10 @@ class _ProfilScreenState extends State<ProfilScreen> {
   }
 
   Widget _buildBadgeItem({
-    required String icon,
-    required String name,
-    required String description,
-    required bool unlocked,
+  required IconData icon, // String → IconData
+  required String name,
+  required String description,
+  required bool unlocked,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: kSmallSpace),
@@ -455,21 +467,20 @@ class _ProfilScreenState extends State<ProfilScreen> {
       decoration: BoxDecoration(
         color: unlocked
             ? kPrimaryColor
-            : kPrimaryColor.withOpacity(0.3),
+            : kPrimaryColor.withOpacity(kOpacityVeryLow),
         borderRadius: BorderRadius.circular(kInputRadius),
         border: Border.all(
-          color: unlocked ? kAccentColor : kTextSecondary.withOpacity(0.3),
-          width: unlocked ? 2 : 1,
+          color: unlocked ? kAccentColor : kTextSecondary.withOpacity(kOpacityVeryLow),
+          width: unlocked ? kBorderWidth : kBorderWidthThin,
         ),
       ),
       child: Row(
         children: [
-          Text(
+          // Remplacer Text par Icon
+          Icon(
             icon,
-            style: TextStyle(
-              fontSize: kFontSizeXXLarge,
-              color: unlocked ? null : kTextSecondary.withOpacity(0.5),
-            ),
+            size: kIconSizeLarge, // Taille appropriée pour les badges
+            color: unlocked ? kAccentColor : kTextSecondary.withOpacity(kOpacityLow),
           ),
           const SizedBox(width: kMediumSpace),
           Expanded(
@@ -499,11 +510,11 @@ class _ProfilScreenState extends State<ProfilScreen> {
               Icons.check_circle,
               color: kAccentColor,
               size: kIconSizeMedium,
-            ),
+           ),
         ],
       ),
     );
-  }
+}
 
   // Calculer les stats depuis toutes les sessions de tous les groupes
   Future<Map<String, int>> _calculateStats(String userId) async {

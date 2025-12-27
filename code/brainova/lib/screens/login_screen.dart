@@ -68,6 +68,9 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  // ========================================================
+  // Construit l'interface de l'écran de connexion
+  // ========================================================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -125,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Container(
                       padding: const EdgeInsets.all(kLargeSpace),
                       decoration: BoxDecoration(
-                        color: kSurfaceColor.withOpacity(0.5),
+                        color: kSurfaceColor.withOpacity(kFormFieldOpacity),
                         borderRadius: BorderRadius.circular(kCardRadius),
                       ),
                       child: Column(
@@ -139,7 +142,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
                           const SizedBox(height: kLargeSpace),
 
+                          // ===========================
                           // === CHAMP EMAIL ===
+                          // ===========================
                           Text(
                             'Adresse email',
                             style: kBodyMedium.copyWith(
@@ -155,10 +160,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             decoration: InputDecoration(
                               hintText: 'votre@email.com',
                               hintStyle: kBodyMedium.copyWith(
-                                color: kTextSecondary.withOpacity(0.5),
+                                color: kTextSecondary.withOpacity(kFormFieldOpacity),
                               ),
                               filled: true,
-                              fillColor: kBackgroundColor.withOpacity(0.5),
+                              fillColor: kBackgroundColor.withOpacity(kFormFieldOpacity),
                               prefixIcon: const Icon(
                                 Icons.email_outlined,
                                 color: kAccentPurple,
@@ -185,7 +190,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
                           const SizedBox(height: kPaddingVertical),
 
+                          // ===========================
                           // === CHAMP MOT DE PASSE ===
+                          // ===========================
                           Text(
                             'Mot de passe',
                             style: kBodyMedium.copyWith(
@@ -201,10 +208,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             decoration: InputDecoration(
                               hintText: '••••••••',
                               hintStyle: kBodyMedium.copyWith(
-                                color: kTextSecondary.withOpacity(0.5),
+                                color: kTextSecondary.withOpacity(kFormFieldOpacity),
                               ),
                               filled: true,
-                              fillColor: kBackgroundColor.withOpacity(0.5),
+                              fillColor: kBackgroundColor.withOpacity(kFormFieldOpacity),
                               prefixIcon: const Icon(
                                 Icons.lock_outline,
                                 color: kAccentPurple,
@@ -235,13 +242,18 @@ class _LoginScreenState extends State<LoginScreen> {
                               if (value == null || value.isEmpty) {
                                 return 'Entrez votre mot de passe';
                               }
+                              if (value.length < kPasswordMinLength) { //6 caracteres minimum
+                                return 'Minimum $kPasswordMinLength caractères';
+                              }
                               return null;
                             },
                           ),
 
                           const SizedBox(height: kLargeSpace),
 
+                          // ===========================
                           // === BOUTON SE CONNECTER ===
+                          // ===========================
                           SizedBox(
                             width: double.infinity,
                             height: kButtonHeight,
@@ -268,7 +280,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         height: kIconSizeMedium,
                                         width: kIconSizeMedium,
                                         child: CircularProgressIndicator(
-                                          strokeWidth: 2,
+                                          strokeWidth: kLoadingStrokeWidth,
                                           color: kBackgroundColor,
                                         ),
                                       )
@@ -288,7 +300,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: kLargeSpace),
 
-                    // === LIEN VERS INSCRIPTION ===
+                    // ===========================
+                    // === LIEN VERS INSCRIPTION 
+                    // ===========================
                     TextButton(
                       onPressed: () {
                         Navigator.pop(context);

@@ -4,6 +4,8 @@ import 'package:brainova/styles/colors.dart';
 import 'package:brainova/styles/sizes.dart';
 import 'package:brainova/styles/spacings.dart';
 import 'package:brainova/styles/texts.dart';
+import 'package:brainova/styles/constants.dart';
+
 
 class GroupeDetailScreen extends StatefulWidget {
   final String groupeId;
@@ -36,23 +38,24 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
     return Color(int.parse('FF$hexColor', radix: 16));
   }
 
+  // Formate la durée totale en heures, minutes, secondes
   String _formatDuration(int totalSeconds) {
-    final hours = totalSeconds ~/ 3600;
-    final minutes = (totalSeconds % 3600) ~/ 60;
-    final seconds = totalSeconds % 60;
+    final hours = totalSeconds ~/ kSecondsPerHour;
+    final minutes = (totalSeconds % kSecondsPerHour) ~/ kSecondsPerMinute;
+    final seconds = totalSeconds % kSecondsPerMinute;
 
-    if (hours > 0) {
-      if (minutes > 0 && seconds > 0) {
+    if (hours > kDefaultCount) {
+      if (minutes > kDefaultCount && seconds > kDefaultCount) {
         return '${hours}h ${minutes}min ${seconds}s';
-      } else if (minutes > 0) {
+      } else if (minutes > kDefaultCount) {
         return '${hours}h ${minutes}min';
-      } else if (seconds > 0) {
+      } else if (seconds > kDefaultCount) {
         return '${hours}h ${seconds}s';
       } else {
         return '${hours}h';
       }
-    } else if (minutes > 0) {
-      if (seconds > 0) {
+    } else if (minutes > kDefaultCount) {
+      if (seconds > kDefaultCount) {
         return '${minutes}min ${seconds}s';
       } else {
         return '${minutes}min';
@@ -66,17 +69,18 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
     final now = DateTime.now();
     final difference = now.difference(date);
 
-    if (difference.inDays == 0) {
+    if (difference.inDays == kDefaultCount) { //si la difference est de 0 jour
       return 'Aujourd\'hui';
-    } else if (difference.inDays == 1) {
+    } else if (difference.inDays == kFirstRank) {// si la difference est de 1 jour
       return 'Hier';
-    } else if (difference.inDays < 7) {
+    } else if (difference.inDays < kDaysInWeek) { //si la difference est de moins de 7 jours
       return 'Il y a ${difference.inDays} jours';
     } else {
       return '${date.day} ${_getMonthName(date.month)} ${date.year}';
     }
   }
 
+  // Retourne le nom du mois en français
   String _getMonthName(int month) {
     const months = [
       '', 'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
@@ -85,6 +89,9 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
     return months[month];
   }
 
+  // ===========================
+  // Build Method
+  // ===========================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -135,6 +142,9 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
     );
   }
 
+  // ===========================
+  // Widgets qui construisent l'UI
+  // ===========================
   Widget _buildHeader() {
     return Padding(
       padding: const EdgeInsets.all(kScreenPadding),
@@ -154,6 +164,9 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
     );
   }
 
+  //===========================================
+  // widget qui construit la carte du groupe
+  //===========================================
   Widget _buildGroupeCard() {
     final groupColor = _getGroupColor();
 
@@ -174,24 +187,25 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
               .collection('sessions')
               .snapshots(),
           builder: (context, sessionsSnapshot) {
-            int totalSeconds = 0;
-            int sessionCount = 0;
+            int totalSeconds = kDefaultCount; //=0
+            int sessionCount = kDefaultCount;//=0
 
+            // Calcul du nombre de sessions et du temps total
             if (sessionsSnapshot.hasData) {
               sessionCount = sessionsSnapshot.data!.docs.length;
               for (final doc in sessionsSnapshot.data!.docs) {
                 final data = doc.data() as Map<String, dynamic>;
-                // Même code que session_detail_screen qui marche
-                final dureeSecondes = data['dureeSecondes'] ?? (data['dureeMinutes'] ?? 0) * 60;
+                final dureeSecondes = data['dureeSecondes'] ?? (data['dureeMinutes'] ?? kDefaultCount) * kSecondsPerMinute;
                 totalSeconds += dureeSecondes as int;
               }
             }
 
+            // Construction de la carte du groupe
             return Container(
               margin: const EdgeInsets.symmetric(horizontal: kScreenPadding),
               padding: const EdgeInsets.all(kLargeSpace),
               decoration: BoxDecoration(
-                color: kSurfaceColor.withOpacity(0.8),
+                color: kSurfaceColor.withOpacity(kOpacityMediumHigh),
                 borderRadius: BorderRadius.circular(kCardRadius),
               ),
               child: Column(
@@ -208,6 +222,9 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
                       ),
                     ],
                   ),
+                  // ========================================
+                  // Description du groupe (s'il y en a un)
+                  // ========================================
                   if (widget.description != null) ...[
                     const SizedBox(height: kPaddingHorizontalXS),
                     Text(
@@ -219,7 +236,9 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
                     ),
                   ],
                   const SizedBox(height: kSmallSpace),
-                  // Code
+                  // ===================
+                  // Code du groupe
+                  // ===================
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: kMediumSpace,
@@ -238,7 +257,9 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: kMediumSpace),
+                  // =======
                   // Stats
+                  // =======
                   Row(
                     children: [
                       _buildStatItem(
@@ -272,10 +293,13 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
     );
   }
 
+  //=================================================
+  // widget qui fait une statistique individuelle 
+  //=================================================
   Widget _buildStatItem(IconData icon, String value, String label, Color color) {
     return Column(
       children: [
-        Icon(icon, color: color, size: kIconSizeMedium),
+        Icon(icon, color: color, size: kIconSizeMedium), 
         const SizedBox(height: kPaddingVerticalXS),
         Text(
           value,
@@ -352,7 +376,7 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(kInputRadius),
                   ),
-                  elevation: 0,
+                  elevation: kElevationNone,
                 ),
               ),
             ),
@@ -362,6 +386,9 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
     );
   }
 
+  //=================================================
+  // widget qui construit l'historique des sessions
+  //=================================================
   Widget _buildHistorique() {
     return StreamBuilder<QuerySnapshot>(
       stream: _firestore
@@ -389,7 +416,7 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
             final data = doc.data() as Map<String, dynamic>;
 
             // Même code que session_detail_screen qui marche
-            final dureeSecondes = data['dureeSecondes'] ?? (data['dureeMinutes'] ?? 0) * 60;
+            final dureeSecondes = data['dureeSecondes'] ?? (data['dureeMinutes'] ?? kDefaultCount) * kSecondsPerMinute;
 
             return _buildSessionCard(
               sessionId: doc.id,
@@ -413,7 +440,7 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
     required List<String> participants,
     required bool isTermine,
   }) {
-    return GestureDetector(
+    return GestureDetector( //rend le container cliquable
       onTap: () {
         Navigator.pushNamed(
           context,
@@ -425,15 +452,15 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
           },
         );
       },
-      child: Container(
+      child: Container( //carte de la session
       margin: const EdgeInsets.only(bottom: kMediumSpace),
       padding: const EdgeInsets.all(kMediumSpace),
       decoration: BoxDecoration(
-        color: kSurfaceColor.withOpacity(0.6),
+        color: kSurfaceColor.withOpacity(kOpacityMediumLow),
         borderRadius: BorderRadius.circular(kInputRadius),
         border: Border.all(
           color: kPrimaryColor,
-          width: 1,
+          width: kBorderWidthThin, // Épaisseur de la bordure
         ),
       ),
       child: Column(
@@ -512,6 +539,9 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
     );
   }
 
+  //=================================================================
+  // widget qui construit l'affichage quand il n'y a pas de session
+  //=================================================================
   Widget _buildEmptyHistorique() {
     return Center(
       child: Padding(
@@ -521,7 +551,7 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
           children: [
             const Icon(
               Icons.event_note,
-              size: kIconSizeXL * 2,
+              size: kIconSizeXL * kIconMultiplierDouble,
               color: kTextSecondary,
             ),
             const SizedBox(height: kLargeSpace),
@@ -563,15 +593,16 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
             final sessionData = sessionDoc.data() as Map<String, dynamic>;
             final participants = List<String>.from(sessionData['participantIds'] ?? []);
             // Même code que session_detail_screen qui marche
-            final duree = sessionData['dureeSecondes'] ?? (sessionData['dureeMinutes'] ?? 0) * 60;
+            final duree = sessionData['dureeSecondes'] ?? (sessionData['dureeMinutes'] ?? kDefaultCount) * kSecondsPerMinute;
 
+            // Ajouter le temps à chaque participant
             for (final userId in participants) {
-              userSeconds[userId] = (userSeconds[userId] ?? 0) + (duree as int);
+              userSeconds[userId] = (userSeconds[userId] ?? kDefaultCount) + (duree as int);
             }
           }
         }
 
-        // Trier par temps décroissant
+        // Trier par temps décroissant les utilisateurs
         final sortedUsers = userSeconds.entries.toList()
           ..sort((a, b) => b.value.compareTo(a.value));
 
@@ -598,6 +629,9 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
     );
   }
 
+  //=================================================
+  // widget qui construit une carte de classement
+  //=================================================
   Widget _buildClassementCard({
     required String userId,
     required int seconds,
@@ -606,7 +640,7 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
     return StreamBuilder<DocumentSnapshot>(
       stream: _firestore.collection('users').doc(userId).snapshots(),
       builder: (context, userSnapshot) {
-        // ⭐ CORRECTION: État de chargement
+        // État de chargement
         if (userSnapshot.connectionState == ConnectionState.waiting) {
           return Container(
             margin: const EdgeInsets.only(bottom: kMediumSpace),
@@ -624,7 +658,7 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
           );
         }
 
-        // ⭐ CORRECTION: Données par défaut
+        // Données par défaut
         String fullName = 'Utilisateur inconnu';
         
         if (userSnapshot.hasData && userSnapshot.data!.exists) {
@@ -641,19 +675,19 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
 
         // Couleur selon le rang
         Color rankColor = kTextSecondary;
-        if (rank == 1) rankColor = kAccentColor;
-        if (rank == 2) rankColor = kAccentPurple;
-        if (rank == 3) rankColor = kAccentPink;
+        if (rank == kFirstRank) rankColor = kAccentColor;
+        if (rank == kSecondRank) rankColor = kAccentPurple;
+        if (rank == kThirdRank) rankColor = kAccentPink;
 
         return Container(
           margin: const EdgeInsets.only(bottom: kMediumSpace),
           padding: const EdgeInsets.all(kMediumSpace),
           decoration: BoxDecoration(
-            color: kSurfaceColor.withOpacity(0.6),
+            color: kSurfaceColor.withOpacity(kOpacityMediumLow),
             borderRadius: BorderRadius.circular(kInputRadius),
             border: Border.all(
-              color: rank <= 3 ? rankColor : kPrimaryColor,
-              width: rank <= 3 ? kBorderWidth : 1,
+              color: rank <= kTopThreeRanks ? rankColor : kPrimaryColor,
+              width: rank <= kTopThreeRanks ? kBorderWidth : kBorderWidthThin,
             ),
           ),
           child: Row(
@@ -663,7 +697,7 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
                 width: kAvatarSizeSmall,
                 height: kAvatarSizeSmall,
                 decoration: BoxDecoration(
-                  color: rankColor.withOpacity(0.2),
+                  color: rankColor.withOpacity(kOpacityMinimal),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -700,7 +734,7 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
                   vertical: kPaddingVerticalXS,
                 ),
                 decoration: BoxDecoration(
-                  color: rankColor.withOpacity(0.2),
+                  color: rankColor.withOpacity(kOpacityMinimal),
                   borderRadius: BorderRadius.circular(kPaddingHorizontalXS),
                 ),
                 child: Text(
@@ -727,7 +761,7 @@ class _GroupeDetailScreenState extends State<GroupeDetailScreen> {
           children: [
             const Icon(
               Icons.emoji_events,
-              size: kIconSizeXL * 2,
+              size: kIconSizeXL * kIconMultiplierDouble,
               color: kTextSecondary,
             ),
             const SizedBox(height: kLargeSpace),

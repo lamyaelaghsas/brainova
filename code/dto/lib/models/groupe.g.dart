@@ -9,7 +9,7 @@ part of 'groupe.dart';
 _Groupe _$GroupeFromJson(Map<String, dynamic> json) => _Groupe(
       id: json['id'] as String,
       nom: json['nom'] as String,
-      description: json['description'] as String,
+      description: json['description'] as String?,
       code: json['code'] as String,
       couleur: json['couleur'] as String,
       creatorId: json['creatorId'] as String,
@@ -37,7 +37,7 @@ abstract class _$GroupePerFieldToJson {
   // ignore: unused_element
   static Object? nom(String instance) => instance;
   // ignore: unused_element
-  static Object? description(String instance) => instance;
+  static Object? description(String? instance) => instance;
   // ignore: unused_element
   static Object? code(String instance) => instance;
   // ignore: unused_element

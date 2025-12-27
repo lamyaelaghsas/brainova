@@ -37,8 +37,20 @@ const TextStyle kButtonText = TextStyle(
   color: kButtonTextLight,
 );
 
+
 const TextStyle kAccentText = TextStyle(
   fontSize: 16,
   fontWeight: FontWeight.bold,
   color: kAccentColor,
 );
+
+// Letter spacing
+const double kLetterSpacingNormal = 0.5;
+
+// Line height
+const double kLineHeightRelaxed = 1.5;
+
+// Letter spacing
+const double kLetterSpacingWide = 4.0;       // Espacement large entre lettres (codes)
+
+const double kLetterSpacingNarrow = 1.0;     // Espacement étroit entre lettres
