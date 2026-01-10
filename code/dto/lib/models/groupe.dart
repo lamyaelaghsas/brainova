@@ -10,7 +10,7 @@ abstract class Groupe with _$Groupe {
   const factory Groupe({
     @DocumentIdField() required String id,
     required String nom,
-    String? description,  // ✅ Optionnel maintenant
+    String? description,  
     required String code,
     required String couleur,
     required String creatorId,

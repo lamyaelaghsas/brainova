@@ -201,7 +201,7 @@ class _GroupeListScreenState extends State<GroupeListScreen> {
                 ),
               ],
             ),
-          ),          
+          ),
         ],
       ),
     );

@@ -16,16 +16,28 @@ import 'package:brainova/screens/session_active_screen.dart';
 import 'package:brainova/screens/profil_screen.dart';
 import 'package:brainova/screens/notifications_screen.dart';
 import 'package:brainova/widgets/connectivity_wrapper.dart'; 
-
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+import 'package:brainova/services/local_notification_service.dart';
 
 
 // === FONCTION PRINCIPALE ===
 // C'est la première fonction appelée quand l'app démarre
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialiser les fuseaux horaires
+  tz.initializeTimeZones();
+  tz.setLocalLocation(tz.getLocation('Europe/Brussels')); // Belgique
+  
+  // Initialiser les notifications locales
+  await LocalNotificationService.initialize();
+  
+  // Firebase (déjà existant)
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  
   runApp(const BrainovaApp());
 }
 

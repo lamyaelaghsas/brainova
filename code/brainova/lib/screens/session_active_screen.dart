@@ -8,6 +8,7 @@ import 'package:brainova/styles/spacings.dart';
 import 'package:brainova/styles/texts.dart';
 import 'package:brainova/services/notification_service.dart'; 
 import 'package:brainova/styles/constants.dart';
+import 'package:brainova/services/local_notification_service.dart';
 
 
 class SessionActiveScreen extends StatefulWidget {
@@ -50,6 +51,9 @@ class _SessionActiveScreenState extends State<SessionActiveScreen> with WidgetsB
     
     //  NOTIFIER QUE LA SESSION EST EN COURS (chrono démarre)
     _notifySessionStart();
+
+    // Programmer les rappels locaux
+  _scheduleLocalNotifications();
   }
 
   //  NOUVELLE FONCTION POUR NOTIFIER
@@ -63,6 +67,22 @@ class _SessionActiveScreenState extends State<SessionActiveScreen> with WidgetsB
         userId: userId,
       );
     }
+  }
+
+  // Programmer les notifications locales (rappels personnels)
+  Future<void> _scheduleLocalNotifications() async {
+    // ID unique basé sur l'ID de la session
+    final baseId = widget.sessionId.hashCode;
+    
+    // Notification 1 : Motivation après 30 minutes
+    await LocalNotificationService.scheduleNotification(
+      id: baseId + 1,
+      title: 'Bravo !',
+      body: 'Tu étudies "${widget.sujet}" depuis 5 secondes. Continue comme ça !',
+      scheduledDate: DateTime.now().add(const Duration(seconds: 5)),
+      payload: 'session:${widget.sessionId}',
+    );
+    
   }
 
   @override
@@ -103,6 +123,9 @@ class _SessionActiveScreenState extends State<SessionActiveScreen> with WidgetsB
 
   Future<void> _terminerSession() async {
     _timer?.cancel();
+
+    final baseId = widget.sessionId.hashCode;
+    await LocalNotificationService.cancelNotification(baseId + 1);
 
     try {
       final userId = _auth.currentUser?.uid;

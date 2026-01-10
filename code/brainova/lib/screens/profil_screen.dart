@@ -7,7 +7,7 @@ import 'package:brainova/styles/spacings.dart';
 import 'package:brainova/styles/texts.dart';
 import 'package:brainova/widgets/custom_bottom_nav_bar.dart';
 import 'package:brainova/styles/constants.dart';
-
+ 
 
 class ProfilScreen extends StatefulWidget {
   const ProfilScreen({super.key});

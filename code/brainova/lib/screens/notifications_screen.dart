@@ -70,13 +70,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     final userId = _auth.currentUser?.uid;
-    
-    //DEBUG AUTH
-    print('=== AUTH DEBUG ===');
-    print('Utilisateur connecté: ${_auth.currentUser?.email}');
-    print('UID actuel: $userId');
-    print('UID attendu: svEShIWd6eWArtf5t3M4szPBzgr2');
-    print('Match: ${userId == "svEShIWd6eWArtf5t3M4szPBzgr2"}');
 
     if (userId == null) {
       return const Scaffold(
@@ -147,87 +140,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       .limit(50)
                       .snapshots(),
                   builder: (context, snapshot) {
-                    // === DEBUG COMPLET ===
-                    print('=== NOTIFICATIONS DEBUG ===');
-                    print('État: ${snapshot.connectionState}');
-                    print('Erreur: ${snapshot.error}');
-                    print('HasData: ${snapshot.hasData}');
-                    print('Nombre de docs: ${snapshot.data?.docs.length ?? 0}');
-                    print('userId recherché: $userId');
-                    
-                    // SI ERREUR → AFFICHER À L'ÉCRAN
-                    if (snapshot.hasError) {
-                      print('ERREUR FIRESTORE: ${snapshot.error}');
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(kScreenPadding),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.error_outline,
-                                size: kIconSizeError,
-                                color: kErrorColor,
-                              ),
-                              const SizedBox(height: kLargeSpace),
-                              const Text(
-                                'Erreur Firestore',
-                                style: kTitleMedium,
-                              ),
-                              const SizedBox(height: kSmallSpace),
-                              Container(
-                                padding: const EdgeInsets.all(kMediumSpace),
-                                decoration: BoxDecoration(
-                                  color: kSurfaceColor,
-                                  borderRadius: BorderRadius.circular(kCardRadius),
-                                ),
-                                child: SelectableText(
-                                  '${snapshot.error}',
-                                  style: kBodyMedium.copyWith(
-                                    fontSize: kFontSizeSmall,
-                                    color: kErrorColor,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: kLargeSpace),
-                              ElevatedButton.icon(
-                                onPressed: () {
-                                  setState(() {}); // Force rebuild
-                                },
-                                icon: const Icon(Icons.refresh),
-                                label: const Text('Réessayer'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: kAccentColor,
-                                  foregroundColor: kBackgroundColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
-
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
                         child: CircularProgressIndicator(color: kAccentColor),
                       );
                     }
 
-                    //DEBUG: Afficher les données reçues
-                    if (snapshot.hasData) {
-                      print('Documents reçus:');
-                      for (var doc in snapshot.data!.docs) {
-                        final data = doc.data() as Map<String, dynamic>;
-                        print('  - Doc ID: ${doc.id}');
-                        print('    userId: ${data['userId']}');
-                        print('    type: ${data['type']}');
-                        print('    title: ${data['title']}');
-                        print('    createdAt: ${data['createdAt']}');
-                      }
-                    }
-
                     if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      print('Aucune donnée ou liste vide');
                       return _buildEmptyState();
                     }
 

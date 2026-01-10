@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:brainova/services/local_notification_service.dart';
 
 /// Service pour gérer les notifications dans l'app
 class NotificationService {

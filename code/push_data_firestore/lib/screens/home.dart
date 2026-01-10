@@ -258,7 +258,6 @@ class _HomeState extends State<Home> {
 
       for (final session in sessionsForGroupe) {
         try {
-          // 🔥 CORRECTION : Seulement le créateur du groupe comme participant
           final groupeData = groupeDoc.data() as Map<String, dynamic>;
           final creatorUid = groupeData['creatorId'] as String;
 
